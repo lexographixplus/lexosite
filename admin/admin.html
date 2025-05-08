@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - LexoGraphix Plus</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* Styles remain the same as the previous version */
+        body { font-family: 'Inter', sans-serif; background-color: #F3F4F6; }
+        .bg-admin-primary { background-color: #002147; } .text-admin-primary { color: #002147; }
+        .border-admin-primary { border-color: #002147; }
+        .bg-admin-secondary { background-color: #C69E63; } .text-admin-secondary { color: #C69E63; }
+        .admin-sidebar { width: 260px; transition: transform 0.3s ease-in-out; }
+        .admin-sidebar-link { display: flex; align-items: center; padding: 0.75rem 1.25rem; color: #D1D5DB; font-weight: 500; border-radius: 0.375rem; transition: background-color 0.2s ease, color 0.2s ease; }
+        .admin-sidebar-link:hover { background-color: #1F2937; color: #FFFFFF; }
+        .admin-sidebar-link.active { background-color: #C69E63; color: #002147; font-weight: 600; }
+        .admin-sidebar-link i { margin-right: 0.75rem; width: 20px; text-align: center; }
+        @media (max-width: 768px) {
+            .admin-sidebar { transform: translateX(-100%); position: fixed; z-index: 40; }
+            .admin-sidebar.show { transform: translateX(0); }
+        }
+        .admin-main-content { transition: margin-left 0.3s ease-in-out; width: 100%; }
+        .dashboard-card { background-color: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); }
+        .stat-loading { color: #9CA3AF; font-style: italic; font-size: 1.5rem; }
+        #loadingOverlay { position: fixed; inset: 0; background-color: rgba(255, 255, 255, 0.8); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        .comment-snippet { color: #4B5563; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; margin-top: 0.25rem; }
+        .comment-meta { font-size: 0.75rem; color: #6B7280; }
+        .pending-badge { font-size: 0.65rem; font-weight: 600; color: #9A3412; background-color: #FEF3C7; padding: 1px 6px; border-radius: 0.25rem; margin-left: 0.5rem; vertical-align: middle; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    
+
+    <aside id="adminSidebar" class="admin-sidebar bg-admin-primary text-white h-full fixed lg:static flex-shrink-0 flex flex-col space-y-2 p-4 z-30">
+        <div class="text-center py-4 mb-4 border-b border-gray-700">
+            <a href="admin.html" class="text-2xl font-bold text-white">LexoGraphix<span class="text-admin-secondary">Plus</span></a>
+            <p class="text-xs text-gray-400">Admin Panel</p>
+        </div>
+        <nav class="flex-grow">
+            <a href="admin.html" class="admin-sidebar-link active" id="nav-dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="blog-management.html" class="admin-sidebar-link" id="nav-blog-management"><i class="fas fa-newspaper"></i> Blog Management</a>
+            <a href="book-directory.html" class="admin-sidebar-link" id="nav-book-directory"><i class="fas fa-book-open"></i> Book Directory</a>
+            <a href="newsletter-signups.html" class="admin-sidebar-link" id="nav-newsletter-signups"><i class="fas fa-envelope-open-text"></i> Newsletter Signups</a>
+            <a href="contact-messages.html" class="admin-sidebar-link" id="nav-contact-messages"><i class="fas fa-inbox"></i> Contact Messages</a>
+            <a href="comments-management.html" class="admin-sidebar-link active" id="nav-comments-management"><i class="fas fa-comments"></i> Comments</a>
+            </nav>
+        <div class="mt-auto border-t border-gray-700 pt-4">
+            <div class="flex items-center mb-3">
+                <img src="https://placehold.co/40x40/C69E63/002147?text=A" alt="Admin User" id="adminUserAvatar" class="w-8 h-8 rounded-full mr-3">
+                <div><p class="text-sm font-medium text-white" id="adminUserName">Loading...</p><p class="text-xs text-gray-400" id="adminUserRole">Administrator</p></div>
+            </div>
+            <a href="#" id="logoutButton" class="admin-sidebar-link !justify-center !bg-red-600 hover:!bg-red-700 !text-white"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </aside>
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden lg:hidden"></div>
+
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <header class="bg-white shadow-md p-4 flex justify-between items-center">
+            <button id="sidebarToggleButton" class="lg:hidden text-admin-primary focus:outline-none"><i class="fas fa-bars text-xl"></i></button>
+            <h1 class="text-xl font-semibold text-admin-primary" id="pageTitle">Dashboard Overview</h1>
+            <div><a href="../index.html" target="_blank" class="text-sm text-admin-primary hover:text-admin-secondary" title="View Live Site">View Site <i class="fas fa-external-link-alt ml-1"></i></a></div>
+        </header>
+
+        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6 md:p-8">
+            <div class="container mx-auto">
+                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="dashboard-card"><div class="flex items-center"><div class="p-3 rounded-full bg-blue-100 text-blue-600 mr-4"><i class="fas fa-newspaper fa-lg"></i></div><div><p class="text-sm text-gray-500">Total Blog Posts</p><p class="text-2xl font-semibold text-admin-primary stat-loading" id="stat-total-posts">...</p></div></div></div>
+                    <div class="dashboard-card"><div class="flex items-center"><div class="p-3 rounded-full bg-green-100 text-green-600 mr-4"><i class="fas fa-book fa-lg"></i></div><div><p class="text-sm text-gray-500">Books in Directory</p><p class="text-2xl font-semibold text-admin-primary stat-loading" id="stat-total-books">...</p></div></div></div>
+                    <div class="dashboard-card"><div class="flex items-center"><div class="p-3 rounded-full bg-yellow-100 text-yellow-600 mr-4"><i class="fas fa-users fa-lg"></i></div><div><p class="text-sm text-gray-500">Newsletter Subscribers</p><p class="text-2xl font-semibold text-admin-primary stat-loading" id="stat-total-subscribers">...</p></div></div></div>
+                    <div class="dashboard-card"><div class="flex items-center"><div class="p-3 rounded-full bg-red-100 text-red-600 mr-4"><i class="fas fa-inbox fa-lg"></i></div><div><p class="text-sm text-gray-500">Unread Messages</p><p class="text-2xl font-semibold text-admin-primary stat-loading" id="stat-unread-messages">...</p></div></div></div>
+                </div>
+
+                <div class="dashboard-card mb-8">
+                    <h2 class="text-xl font-semibold text-admin-primary mb-4">Welcome, <span id="welcomeAdminName">Admin</span>!</h2>
+                    <p class="text-gray-600">This is your central hub for managing content on LexoGraphix Plus. Use the sidebar navigation to manage blog posts, view newsletter signups, respond to contact messages, and manage the book directory.</p>
+                    <div id="dashboard-error" class="mt-4 text-red-600 hidden"></div>
+                </div>
+
+                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="dashboard-card">
+                        <h3 class="text-lg font-semibold text-admin-primary mb-3">Recent Comments</h3>
+                        <ul class="text-sm space-y-3" id="recent-comments-list">
+                            <li class="text-gray-500 italic" id="comments-loading-state"><i class="fas fa-spinner fa-spin mr-2"></i>Loading recent comments...</li>
+                            </ul>
+                        <div class="mt-4 pt-3 border-t border-gray-200">
+                            <a href="comments-management.html" class="text-admin-secondary hover:underline text-xs font-medium">Manage All Comments →</a>
+                        </div>
+                    </div>
+                     <div class="dashboard-card">
+                        <h3 class="text-lg font-semibold text-admin-primary mb-3">Quick Links</h3>
+                        <div class="space-y-2">
+                            <a href="blog-edit.html" class="block text-admin-secondary hover:underline"><i class="fas fa-plus-circle fa-fw mr-2"></i>Add New Blog Post</a>
+                            <a href="book-edit.html" class="block text-admin-secondary hover:underline"><i class="fas fa-plus-circle fa-fw mr-2"></i>Add New Book</a>
+                            <a href="contact-messages.html?filter=not_replied" class="block text-admin-secondary hover:underline"><i class="fas fa-envelope fa-fw mr-2"></i>View Unread Messages</a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- Supabase Client Initialization ---
+        const SUPABASE_URL = 'https://pegnovymphacsysxdlbr.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBlZ25vdnltcGhhY3N5c3hkbGJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2MjY1MzIsImV4cCI6MjA2MjIwMjUzMn0.d_bhl8FkahwNKlsoG94Wsa68wYDWwT_O7eVOUI40hdo';
+        let supabaseClient = null;
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        // --- DOM Elements ---
+        let adminSidebar, sidebarToggleButton, sidebarOverlay, logoutButton, pageTitleElement,
+            adminUserNameElement, adminUserAvatar, welcomeAdminNameElement, statTotalPosts,
+            statTotalBooks, statTotalSubscribers, statUnreadMessages, recentCommentsList,
+            dashboardError, commentsLoadingState;
+
+        // --- Helper Functions ---
+        function escapeHtml(unsafe) {
+             if (unsafe === null || typeof unsafe === 'undefined') return '';
+             let safe = unsafe.toString();
+             safe = safe.replace(/&/g, "&");
+             safe = safe.replace(/</g, "<");
+             safe = safe.replace(/>/g, ">");
+             safe = safe.replace(/"/g, '\\"');
+             safe = safe.replace(/'/g, "\'");
+             return safe;
+        }
+        function formatRelativeTime(dateString) {
+            if (!dateString) return '';
+            try {
+                const date = new Date(dateString);
+                const now = new Date();
+                const diffInSeconds = Math.floor((now - date) / 1000);
+                const diffInMinutes = Math.floor(diffInSeconds / 60);
+                const diffInHours = Math.floor(diffInMinutes / 60);
+                const diffInDays = Math.floor(diffInHours / 24);
+
+                if (diffInSeconds < 60) return `${diffInSeconds} sec ago`;
+                if (diffInMinutes < 60) return `${diffInMinutes} min ago`;
+                if (diffInHours < 24) return `${diffInHours} hr ago`;
+                if (diffInDays === 1) return `Yesterday`;
+                if (diffInDays < 7) return `${diffInDays} days ago`;
+                return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+            } catch(e) { console.error("Error formatting time:", e); return "Invalid date"; }
+        }
+        function displayDashboardError(message) {
+            if(dashboardError) {
+                dashboardError.textContent = message;
+                dashboardError.classList.remove('hidden');
+            } else { console.error("Dashboard error display element not found."); alert(message); }
+        }
+        function setActiveLink(navId, title) {
+            document.querySelectorAll('.admin-sidebar-link').forEach(link => link.classList.remove('active'));
+            const activeLink = document.getElementById(navId);
+            if (activeLink) activeLink.classList.add('active');
+            if (pageTitleElement) pageTitleElement.textContent = title;
+            document.title = title + " - Admin | LexoGraphix Plus";
+        }
+
+        // --- Core Dashboard Function ---
+        async function loadDashboardData() {
+            console.log("loadDashboardData called");
+            if (!supabaseClient) {
+                console.error("Supabase client not available. Cannot load dashboard data.");
+                displayDashboardError("Backend connection error.");
+                // Clear loading states
+                [statTotalPosts, statTotalBooks, statTotalSubscribers, statUnreadMessages].forEach(el => {
+                    if(el) { el.textContent = 'N/A'; el.classList.remove('stat-loading'); }
+                });
+                if(commentsLoadingState) commentsLoadingState.textContent = 'Error loading comments.';
+                if (loadingOverlay) loadingOverlay.style.display = 'none';
+                return;
+            }
+
+            try {
+                console.log("Checking auth session...");
+                // 1. Check Auth State & Update User Info
+                const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+                if (sessionError) { console.error("Session Error:", sessionError); throw sessionError; }
+                if (!session) { console.log("No session found, redirecting to login."); window.location.href = 'login.html'; return; }
+                console.log('User session active, loading dashboard data...');
+                const user = session.user;
+                // Update admin user display
+                if (user && adminUserNameElement && adminUserAvatar && welcomeAdminNameElement) {
+                     if (user.email) {
+                        const userName = user.email.split('@')[0];
+                        adminUserNameElement.textContent = userName;
+                        welcomeAdminNameElement.textContent = userName;
+                        const initial = user.email.charAt(0).toUpperCase();
+                        adminUserAvatar.src = `https://placehold.co/40x40/C69E63/002147?text=${initial}`;
+                    } else {
+                        adminUserNameElement.textContent = 'Admin';
+                        welcomeAdminNameElement.textContent = 'Admin';
+                        adminUserAvatar.src = 'https://placehold.co/40x40/C69E63/002147?text=A';
+                    }
+                } else { console.warn("User display elements not found."); }
+
+                console.log("Fetching counts and comments...");
+                // 2. Fetch Counts & Recent Comments (Parallel)
+                // REMINDER: Ensure RLS policies allow authenticated users SELECT on these tables.
+                const [
+                    postsCountRes,
+                    booksCountRes,
+                    subscribersCountRes,
+                    unreadMessagesCountRes,
+                    recentCommentsRes
+                ] = await Promise.allSettled([
+                    supabaseClient.from('blog_posts').select('id', { count: 'exact', head: true }), // Optimized count query
+                    supabaseClient.from('books').select('id', { count: 'exact', head: true }),
+                    supabaseClient.from('newsletter_signups').select('id', { count: 'exact', head: true }),
+                    supabaseClient.from('contact_messages').select('id', { count: 'exact', head: true }).eq('replied', false),
+                    supabaseClient
+                        .from('blog_comments')
+                        .select(`
+                            id, created_at, author_name, comment_text, is_approved,
+                            blog_posts ( title, slug )
+                        `, { count: 'estimated' }) // Use estimated count for comments if exact isn't crucial and potentially faster
+                        .order('created_at', { ascending: false })
+                        .limit(5)
+                ]);
+                console.log("Fetch results:", { postsCountRes, booksCountRes, subscribersCountRes, unreadMessagesCountRes, recentCommentsRes });
+
+
+                // 3. Update Stat Cards
+                const updateStat = (element, result, name) => {
+                    if (element) {
+                         if (result.status === 'fulfilled' && result.value.error == null) {
+                            element.textContent = result.value.count ?? '0';
+                            console.log(`${name} count: ${element.textContent}`);
+                        } else {
+                            element.textContent = 'Err'; // Use shorter error indicator
+                            console.error(`Error fetching count for ${name}:`, result.status === 'fulfilled' ? result.value.error : result.reason);
+                        }
+                        element.classList.remove('stat-loading');
+                    } else { console.warn(`Stat element for ${name} not found.`); }
+                };
+
+                updateStat(statTotalPosts, postsCountRes, 'Posts');
+                updateStat(statTotalBooks, booksCountRes, 'Books');
+                updateStat(statTotalSubscribers, subscribersCountRes, 'Subscribers');
+                updateStat(statUnreadMessages, unreadMessagesCountRes, 'Unread Messages');
+
+                 // 4. Update Recent Comments List
+                 if (recentCommentsList) {
+                    if (recentCommentsRes.status === 'fulfilled' && recentCommentsRes.value.error == null) {
+                        const comments = recentCommentsRes.value.data;
+                        console.log("Fetched comments data:", comments);
+                        if (comments && comments.length > 0) {
+                            recentCommentsList.innerHTML = ''; // Clear loading state
+                            comments.forEach(comment => {
+                                // Defensive checks for joined data
+                                const postTitle = comment.blog_posts?.title || 'Unknown Post';
+                                const postSlug = comment.blog_posts?.slug;
+                                const commentSnippet = escapeHtml(comment.comment_text?.substring(0, 60) ?? '') + (comment.comment_text?.length > 60 ? '...' : '');
+                                const relativeTime = formatRelativeTime(comment.created_at);
+                                const postLink = postSlug ? `../blog-post-single.html?slug=${encodeURIComponent(postSlug)}` : '#';
+                                const pendingBadge = !comment.is_approved ? '<span class="pending-badge">PENDING</span>' : '';
+
+                                const li = document.createElement('li');
+                                li.className = "border-b border-gray-100 pb-2 last:border-b-0";
+                                li.innerHTML = `
+                                    <div class="font-medium text-gray-800">
+                                        ${escapeHtml(comment.author_name)} ${pendingBadge}
+                                    </div>
+                                    <div class="comment-snippet">${commentSnippet}</div>
+                                    <div class="comment-meta">
+                                        on <a href="${postLink}" target="_blank" class="text-admin-secondary hover:underline">${escapeHtml(postTitle)}</a> - ${relativeTime}
+                                    </div>
+                                `;
+                                recentCommentsList.appendChild(li);
+                            });
+                        } else {
+                             console.log("No recent comments found.");
+                             if(commentsLoadingState) commentsLoadingState.textContent = 'No recent comments found.';
+                             else recentCommentsList.innerHTML = '<li class="text-gray-500 italic">No recent comments found.</li>';
+                        }
+                    } else {
+                         console.error("Error fetching recent comments:", recentCommentsRes.status === 'fulfilled' ? recentCommentsRes.value.error : recentCommentsRes.reason);
+                         if(commentsLoadingState) commentsLoadingState.textContent = 'Error loading recent comments.';
+                         else recentCommentsList.innerHTML = '<li class="text-red-500 italic">Error loading recent comments.</li>';
+                         // Optionally display the error message
+                         // displayDashboardError(`Failed to load comments: ${recentCommentsRes.status === 'fulfilled' ? recentCommentsRes.value.error.message : recentCommentsRes.reason}`);
+                    }
+                 } else {
+                     console.error("Recent comments list element (#recent-comments-list) not found.");
+                 }
+
+            } catch (error) {
+                 console.error("Error in loadDashboardData:", error);
+                 displayDashboardError(`Failed to load dashboard data: ${error.message}`);
+                 // Reset stats to 'Error'
+                  [statTotalPosts, statTotalBooks, statTotalSubscribers, statUnreadMessages].forEach(el => {
+                    if(el) { el.textContent = 'Err'; el.classList.remove('stat-loading'); }
+                });
+                 if(commentsLoadingState) commentsLoadingState.textContent = 'Error loading data.';
+                 else if(recentCommentsList) recentCommentsList.innerHTML = '<li class="text-red-500 italic">Error loading data.</li>';
+
+                 if (error.message.includes('JWT') || error.message.includes('session') || error.message.includes('Auth') ) {
+                    window.location.href = 'login.html';
+                 }
+            } finally {
+                if (loadingOverlay) loadingOverlay.style.display = 'none';
+                setActiveLink('nav-dashboard', 'Dashboard Overview');
+            }
+        }
+
+        // --- Initialize Page ---
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOMContentLoaded event fired.");
+            // Assign DOM Elements
+            adminSidebar = document.getElementById('adminSidebar');
+            sidebarToggleButton = document.getElementById('sidebarToggleButton');
+            sidebarOverlay = document.getElementById('sidebarOverlay');
+            logoutButton = document.getElementById('logoutButton');
+            pageTitleElement = document.getElementById('pageTitle');
+            adminUserNameElement = document.getElementById('adminUserName');
+            adminUserAvatar = document.getElementById('adminUserAvatar');
+            welcomeAdminNameElement = document.getElementById('welcomeAdminName');
+            statTotalPosts = document.getElementById('stat-total-posts');
+            statTotalBooks = document.getElementById('stat-total-books');
+            statTotalSubscribers = document.getElementById('stat-total-subscribers');
+            statUnreadMessages = document.getElementById('stat-unread-messages');
+            recentCommentsList = document.getElementById('recent-comments-list');
+            dashboardError = document.getElementById('dashboard-error');
+            commentsLoadingState = document.getElementById('comments-loading-state'); // Reference the loading LI
+
+            // Basic check if elements are found
+            if (!adminSidebar || !logoutButton || !statTotalPosts || !recentCommentsList) {
+                console.error("Essential dashboard elements not found! Aborting setup.");
+                if(loadingOverlay) loadingOverlay.style.display = 'none';
+                alert("Error initializing dashboard page elements.");
+                return;
+            }
+
+            // Initialize Supabase Client and Load Data
+            try {
+                if (typeof supabase === 'undefined' || !supabase.createClient) { throw new Error("Supabase library not loaded."); }
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('Supabase client initialized successfully.');
+                loadDashboardData(); // Load data after client is ready
+            } catch (error) {
+                console.error("Error initializing Supabase client:", error);
+                displayDashboardError(`Backend initialization failed: ${error.message}`);
+                if (loadingOverlay) loadingOverlay.style.display = 'none';
+                return;
+            }
+
+            // Setup Listeners
+            if (sidebarToggleButton) { sidebarToggleButton.addEventListener('click', () => { adminSidebar.classList.toggle('show'); sidebarOverlay.classList.toggle('hidden'); }); }
+            if (sidebarOverlay) { sidebarOverlay.addEventListener('click', () => { adminSidebar.classList.remove('show'); sidebarOverlay.classList.add('hidden'); }); }
+            document.querySelectorAll('.admin-sidebar-link').forEach(link => {
+                link.addEventListener('click', function(event) {
+                    if (this.id === 'logoutButton') return;
+                    if (window.innerWidth < 1024 && adminSidebar.classList.contains('show')) {
+                        adminSidebar.classList.remove('show');
+                        sidebarOverlay.classList.add('hidden');
+                    }
+                });
+            });
+            if (logoutButton) {
+                 logoutButton.addEventListener('click', async (event) => {
+                    event.preventDefault();
+                    if (!supabaseClient) { alert('Admin panel backend is not configured.'); return; }
+                    try {
+                        logoutButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Logging out...';
+                        logoutButton.disabled = true;
+                        const { error } = await supabaseClient.auth.signOut();
+                        if (error) throw error;
+                        window.location.href = 'login.html';
+                    } catch (error) {
+                        console.error('Logout Error:', error);
+                        alert('Logout failed: ' + error.message);
+                        logoutButton.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+                        logoutButton.disabled = false;
+                    }
+                });
+            }
+
+        }); // End DOMContentLoaded
+
+    </script>
+</body>
+</html>

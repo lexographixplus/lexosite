@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Post - LexoGraphix Plus</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+        .bg-primary { background-color: #002147; }
+        .text-primary { color: #002147; }
+        .bg-secondary { background-color: #C69E63; }
+        .text-secondary { color: #C69E63; }
+        .btn-primary { background-color: #C69E63; color: #002147; transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease; display: inline-block; }
+        .btn-primary:hover { background-color: #002147; color: #C69E63; transform: translateY(-2px); }
+        .btn-primary:disabled { background-color: #b08d57; color: #001a38; cursor: not-allowed; opacity: 0.7;} /* Disabled style */
+        .btn-secondary { background-color: #002147; color: #FFFFFF; transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease; display: inline-block; }
+        .btn-secondary:hover { background-color: #103A67; color: #FFFFFF; transform: translateY(-2px); }
+        .nav-link-active { color: #C69E63 !important; font-weight: 700; }
+        .nav-link-inactive { color: #374151; }
+        .nav-link-inactive:hover { color: #C69E63; }
+        #mobile-menu { display: none; max-height: 0; overflow: hidden; transition: max-height 0.5s ease-in-out; }
+        #mobile-menu.show { display: block; max-height: 500px; }
+        .page-enter { opacity: 0; transform: translateY(20px); }
+        .page-enter-active { opacity: 1; transform: translateY(0); transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
+
+        /* Single Post Content Styling */
+        .prose-custom { font-size: 1.05rem; line-height: 1.7; color: #374151; }
+        .prose-custom h1, .prose-custom h2, .prose-custom h3, .prose-custom h4 { color: #002147; font-weight: 700; margin-bottom: 1em; margin-top: 1.5em; }
+        .prose-custom h1 { font-size: 2.5em; line-height: 1.2; }
+        .prose-custom h2 { font-size: 1.8em; line-height: 1.3; }
+        .prose-custom h3 { font-size: 1.4em; line-height: 1.4; }
+        .prose-custom p { margin-bottom: 1.25em; }
+        .prose-custom a { color: #C69E63; text-decoration: underline; }
+        .prose-custom a:hover { color: #002147; }
+        .prose-custom ul, .prose-custom ol { margin-left: 1.5em; margin-bottom: 1.25em; }
+        .prose-custom li > p { margin-bottom: 0.5em; }
+        .prose-custom blockquote { border-left: 4px solid #C69E63; padding-left: 1em; margin-left: 0; font-style: italic; color: #4B5563; }
+        .prose-custom img { max-width: 100%; height: auto; border-radius: 0.5rem; margin-top: 1.5em; margin-bottom: 1.5em; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .prose-custom pre { background-color: #F3F4F6; padding: 1em; border-radius: 0.375rem; overflow-x: auto; font-size: 0.9em; }
+        .prose-custom code:not(pre code) { background-color: #E5E7EB; padding: 0.2em 0.4em; border-radius: 0.25rem; font-size: 0.9em; }
+        /* Form input styling for comments */
+        .form-input { width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 0.5rem; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;}
+        .form-input:focus { outline: none; border-color: #C69E63; box-shadow: 0 0 0 3px rgba(198, 158, 99, 0.3); }
+        .form-label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: #1F2937; }
+
+        /* Loading/Not Found States */
+        #post-loading, #post-not-found { padding: 3rem 0; text-align: center; font-size: 1.2rem; color: #6B7280; }
+        #post-loading i { margin-right: 0.5rem;}
+
+        /* Comment Feedback Message Styling */
+        #comment-form-message { display: none; } /* Hidden by default */
+        .message-success { background-color: #D1FAE5; color: #065F46; border: 1px solid #6EE7B7; }
+        .message-error { background-color: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex-shrink-0">
+                    <a href="index.html" class="text-2xl font-bold text-primary hover:opacity-80 transition-opacity">
+                        LexoGraphix<span class="text-secondary">Plus</span>
+                    </a>
+                </div>
+                <nav id="desktop-menu" class="hidden md:flex space-x-6 lg:space-x-8 items-center">
+                    <a href="index.html" class="nav-link-inactive">Home</a>
+                    <a href="about.html" class="nav-link-inactive">About</a>
+                    <a href="services.html" class="nav-link-inactive">Services</a>
+                    <a href="platforms.html" class="nav-link-inactive">Platforms</a>
+                    <a href="blog.html" class="nav-link-active">Blog</a>
+                    <a href="contact.html" class="nav-link-inactive">Contact</a>
+                </nav>
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-button" aria-label="Open Menu" class="text-primary hover:text-secondary focus:outline-none">
+                        <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" id="menu-icon-open"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
+                        <svg class="h-7 w-7 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" id="menu-icon-close"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="md:hidden bg-white shadow-lg border-t border-gray-200">
+            <a href="index.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Home</a>
+            <a href="about.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">About</a>
+            <a href="services.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Services</a>
+            <a href="platforms.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Platforms</a>
+            <a href="blog.html" class="block px-4 py-3 text-secondary bg-gray-100 font-semibold">Blog</a>
+            <a href="contact.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Contact</a>
+            <a href="admin/login.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Admin</a>
+        </div>
+    </header>
+
+    <main class="page-enter">
+        <article class="py-12 md:py-16">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-3xl">
+
+                <div id="post-loading" class="hidden">
+                    <p><i class="fas fa-spinner fa-spin"></i> Loading post...</p>
+                </div>
+
+                <div id="post-not-found" class="hidden">
+                     <p>Sorry, the requested blog post could not be found or is not published.</p>
+                     <p class="mt-4"><a href="blog.html" class="text-secondary hover:underline">← Back to Blog</a></p>
+                </div>
+
+                 <div id="post-container" class="hidden"> <header class="mb-8 md:mb-12 text-center">
+                        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-primary mb-4" id="post-title">Post Title Loading...</h1>
+                        <p class="text-gray-600 text-sm md:text-base">
+                            By <span class="text-secondary font-medium" id="post-author">...</span> | Published on <time datetime="" id="post-date">...</time>
+                        </p>
+                    </header>
+
+                    <figure class="mb-8 md:mb-12">
+                        <img src="https://placehold.co/1200x600/EEEEEE/333333?text=Loading+Image" alt="Featured image loading" class="w-full h-auto rounded-lg shadow-lg bg-gray-200" id="post-featured-image">
+                    </figure>
+
+                    <div class="prose-custom max-w-none mx-auto" id="post-content-area">
+                        </div>
+
+                    <nav class="mt-12 flex justify-between items-center text-sm font-medium">
+                        <a href="blog.html" class="group flex items-center text-gray-600 hover:text-primary transition-colors">
+                            <i class="fas fa-arrow-left mr-2 group-hover:text-secondary"></i>
+                            Back to Blog Index
+                        </a>
+                        </nav>
+
+                    <section id="comments" class="mt-16 pt-10 border-t border-gray-300">
+                        <h2 class="text-2xl font-semibold text-primary mb-8">Comments (<span id="comment-count">0</span>)</h2>
+                        <div id="comments-list" class="space-y-6 mb-10">
+                            <p class="text-gray-500 italic">Loading comments...</p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-primary mb-4">Leave a Comment</h3>
+                            <form id="commentForm" class="space-y-4">
+                                <div>
+                                    <label for="comment-name" class="form-label">Name <span class="text-red-500">*</span></label>
+                                    <input type="text" id="comment-name" name="name" class="form-input" required>
+                                </div>
+                                <div>
+                                    <label for="comment-email" class="form-label">Email (will not be published) <span class="text-red-500">*</span></label>
+                                    <input type="email" id="comment-email" name="email" class="form-input" required>
+                                </div>
+                                <div>
+                                    <label for="comment-text" class="form-label">Comment <span class="text-red-500">*</span></label>
+                                    <textarea id="comment-text" name="comment" rows="4" class="form-input" required></textarea>
+                                </div>
+                                <div>
+                                    <button type="submit" class="btn-primary font-semibold py-2.5 px-6 rounded-md">Post Comment</button>
+                                </div>
+                            </form>
+                            <div id="comment-form-message" class="mt-4"></div> </div>
+                    </section>
+                 </div> </div>
+        </article>
+    </main>
+
+     <footer class="bg-primary text-gray-200 py-12 md:py-16">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+                <div class="lg:col-span-1"><h3 class="text-xl font-semibold text-secondary mb-4">LexoGraphix<span class="text-white">Plus</span></h3><p class="text-gray-300 leading-relaxed text-sm">Nurturing Young Gambian Voices, Shaping Our Literary Future.</p></div>
+                <div><h3 class="text-lg font-semibold text-secondary mb-4">Quick Links</h3><ul class="space-y-2 text-sm"><li><a href="index.html" class="hover:text-secondary">Home</a></li><li><a href="about.html" class="hover:text-secondary">About Us</a></li><li><a href="services.html" class="hover:text-secondary">Services</a></li><li><a href="platforms.html" class="hover:text-secondary">Platforms</a></li><li><a href="blog.html" class="hover:text-secondary">Blog</a></li><li><a href="contact.html" class="hover:text-secondary">Contact</a></li></ul></div>
+                <div><h3 class="text-lg font-semibold text-secondary mb-4">Resources</h3><ul class="space-y-2 text-sm"><li><a href="faq.html" class="hover:text-secondary">FAQ</a></li><li><a href="privacy.html" class="hover:text-secondary">Privacy Policy</a></li><li><a href="terms.html" class="hover:text-secondary">Terms of Service</a></li></ul></div>
+                <div><h3 class="text-lg font-semibold text-secondary mb-4">Get In Touch</h3><address class="not-italic text-gray-300 space-y-2 text-sm"><p><i class="fas fa-map-marker-alt fa-fw mr-2 text-secondary"></i> Serrekunda, The Gambia</p><p><i class="fas fa-phone-alt fa-fw mr-2 text-secondary"></i> (220) 2016679 / 5322922</p><p><i class="fas fa-envelope fa-fw mr-2 text-secondary"></i> <a href="mailto:info@lexographixplus.com" class="hover:text-secondary">info@lexographixplus.com</a></p></address><div class="mt-6 flex space-x-4"><a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" class="text-gray-300 hover:text-secondary text-xl"><i class="fab fa-facebook-f"></i></a><a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter / X" class="text-gray-300 hover:text-secondary text-xl"><i class="fab fa-twitter"></i></a><a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" class="text-gray-300 hover:text-secondary text-xl"><i class="fab fa-linkedin-in"></i></a><a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="text-gray-300 hover:text-secondary text-xl"><i class="fab fa-youtube"></i></a></div></div>
+            </div>
+            <div class="border-t border-gray-700 pt-8 text-center text-xs text-gray-400"><p>© <span id="currentYear"></span> LexoGraphix Plus. All Rights Reserved.</p></div>
+        </div>
+    </footer>
+
+    <script>
+        // --- Supabase Client Initialization ---
+        const SUPABASE_URL = 'https://pegnovymphacsysxdlbr.supabase.co'; // Your URL
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBlZ25vdnltcGhhY3N5c3hkbGJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2MjY1MzIsImV4cCI6MjA2MjIwMjUzMn0.d_bhl8FkahwNKlsoG94Wsa68wYDWwT_O7eVOUI40hdo'; // Your Key
+        const BLOG_IMAGE_BUCKET = 'blog-images'; // Your blog image bucket name
+        let supabaseClient = null;
+
+        try {
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            console.log('Supabase client initialized for single blog post page.');
+        } catch (error) {
+            console.error("Error initializing Supabase client:", error);
+            const postNotFound = document.getElementById('post-not-found');
+            if(postNotFound) {
+                postNotFound.innerHTML = '<p>Error connecting to backend. Cannot load post.</p>';
+                postNotFound.classList.remove('hidden');
+            }
+        }
+
+        // --- DOM Elements ---
+        const postContainer = document.getElementById('post-container');
+        const loadingIndicator = document.getElementById('post-loading');
+        const notFoundMessage = document.getElementById('post-not-found');
+        const postTitleElement = document.getElementById('post-title');
+        const postAuthorElement = document.getElementById('post-author');
+        const postDateElement = document.getElementById('post-date');
+        const postFeaturedImage = document.getElementById('post-featured-image');
+        const postContentArea = document.getElementById('post-content-area');
+        const pageTitleTag = document.querySelector('title'); // To update browser tab title
+
+        // Comment elements
+        const commentsList = document.getElementById('comments-list');
+        const commentCountSpan = document.getElementById('comment-count');
+        const commentForm = document.getElementById('commentForm');
+        const commentFormMessage = document.getElementById('comment-form-message');
+
+        let currentPostId = null; // To store the ID of the currently loaded post
+
+        // --- Helper Functions ---
+        function escapeHtml(unsafe) {
+             if (unsafe === null || typeof unsafe === 'undefined') return '';
+             let safe = unsafe.toString();
+             safe = safe.replace(/&/g, "&amp;");
+             safe = safe.replace(/</g, "&lt;");
+             safe = safe.replace(/>/g, "&gt;");
+             safe = safe.replace(/"/g, "&quot;");
+             safe = safe.replace(/'/g, "&#039;");
+             return safe;
+        }
+        function formatDate(dateString) {
+             if (!dateString) return 'Date Unavailable';
+            try {
+                const date = new Date(dateString);
+                // Format for comments (including time)
+                return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+            } catch (e) { console.error("Error formatting date:", dateString, e); return 'Invalid Date'; }
+        }
+         function displayCommentMessage(message, type) {
+            if (!commentFormMessage) return;
+            commentFormMessage.textContent = message;
+            commentFormMessage.className = ''; // Clear previous classes
+            commentFormMessage.classList.add('p-3', 'rounded-md', 'text-sm', 'mt-3', type === 'success' ? 'message-success' : 'message-error');
+            commentFormMessage.style.display = 'block';
+            setTimeout(() => { // Auto-hide
+                 if(commentFormMessage) commentFormMessage.style.display = 'none';
+            }, 5000);
+        }
+
+        // --- Comment Loading Function ---
+        async function loadComments(postId) {
+            if (!supabaseClient || !commentsList || !commentCountSpan) return;
+            console.log("Loading comments for post ID:", postId);
+            commentsList.innerHTML = '<p class="text-gray-500 italic">Loading comments...</p>'; // Loading state
+
+            try {
+                const { data: comments, error, count } = await supabaseClient
+                    .from('blog_comments')
+                    .select('*', { count: 'exact' }) // Get count along with data
+                    .eq('post_id', postId)
+                    .eq('is_approved', true) // Only show approved comments
+                    .order('created_at', { ascending: true }); // Show oldest comments first
+
+                if (error) throw error;
+
+                commentCountSpan.textContent = count ?? 0; // Update comment count
+
+                if (!comments || comments.length === 0) {
+                    commentsList.innerHTML = '<p class="text-gray-500 italic">Be the first to comment!</p>';
+                } else {
+                    commentsList.innerHTML = ''; // Clear loading/empty message
+                    comments.forEach(comment => {
+                        const commentDate = formatDate(comment.created_at);
+                        const commentHtml = `
+                         <div class="comment flex items-start border-b border-gray-200 pb-4 mb-4">
+                            <img src="https://placehold.co/50x50/C69E63/FFFFFF?text=${escapeHtml(comment.author_name.charAt(0).toUpperCase())}" alt="${escapeHtml(comment.author_name)} Avatar" class="w-10 h-10 rounded-full mr-4 mt-1 flex-shrink-0">
+                            <div>
+                                <p class="font-semibold text-primary">${escapeHtml(comment.author_name)}</p>
+                                <p class="text-xs text-gray-500 mb-1"><time datetime="${comment.created_at}">${commentDate}</time></p>
+                                <p class="text-gray-700 whitespace-pre-wrap">${escapeHtml(comment.comment_text)}</p>
+                            </div>
+                        </div>`;
+                        commentsList.innerHTML += commentHtml;
+                    });
+                }
+
+            } catch (error) {
+                console.error("Error loading comments:", error);
+                commentsList.innerHTML = '<p class="text-red-600 italic">Could not load comments.</p>';
+                commentCountSpan.textContent = '0'; // Reset count on error
+            }
+        }
+
+        // --- Comment Form Submission Handler ---
+         async function handleCommentSubmit(event) {
+            event.preventDefault();
+            if (!supabaseClient || !commentForm) return;
+
+            const submitButton = commentForm.querySelector('button[type="submit"]');
+            const nameInput = document.getElementById('comment-name');
+            const emailInput = document.getElementById('comment-email'); // Optional
+            const commentTextInput = document.getElementById('comment-text');
+
+             if (!nameInput.value.trim() || !commentTextInput.value.trim()) {
+                displayCommentMessage('Please enter your name and comment.', 'error');
+                return;
+            }
+            if (!currentPostId) {
+                 displayCommentMessage('Cannot submit comment: Post ID is missing.', 'error');
+                 return;
+            }
+
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Posting...';
+            displayCommentMessage('', 'success'); // Clear previous messages
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('blog_comments')
+                    .insert({
+                        post_id: currentPostId,
+                        author_name: nameInput.value.trim(),
+                        author_email: emailInput.value.trim() || null, // Store email if provided
+                        comment_text: commentTextInput.value.trim(),
+                        is_approved: false // Submit as unapproved
+                    });
+
+                if (error) throw error;
+
+                console.log("Comment submitted:", data);
+                displayCommentMessage('Comment submitted successfully and is awaiting moderation.', 'success');
+                commentForm.reset(); // Clear the form
+
+            } catch (error) {
+                console.error("Error submitting comment:", error);
+                 displayCommentMessage(`Error submitting comment: ${error.message}`, 'error');
+            } finally {
+                 submitButton.disabled = false;
+                 // Reset button text using textContent if no icon needed, or innerHTML if icon is used
+                 submitButton.textContent = 'Post Comment';
+            }
+         }
+
+
+        // --- Core Function to Load Single Post (Modified) ---
+        async function loadSinglePost() {
+             if (!supabaseClient || !postContainer || !loadingIndicator || !notFoundMessage) {
+                 console.error("Initialization failed: Supabase client or required DOM elements missing.");
+                 if(notFoundMessage) notFoundMessage.classList.remove('hidden');
+                 if(loadingIndicator) loadingIndicator.style.display = 'none';
+                 return;
+             }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const postSlug = urlParams.get('slug');
+            if (!postSlug) {
+                 console.error("No post slug found in URL.");
+                 notFoundMessage.classList.remove('hidden');
+                 return;
+            }
+
+            console.log("Attempting to load post with slug:", postSlug);
+            loadingIndicator.classList.remove('hidden'); // Show loading
+
+            try {
+                const { data: post, error } = await supabaseClient
+                    .from('blog_posts')
+                    .select('*') // Select all columns
+                    .eq('slug', postSlug)
+                    .eq('status', 'published')
+                    .single();
+
+                if (error || !post) {
+                     if (error && error.code !== 'PGRST116') { throw error; }
+                     else {
+                        console.warn(`Post with slug "${postSlug}" not found or not published.`);
+                        loadingIndicator.classList.add('hidden');
+                        notFoundMessage.classList.remove('hidden');
+                        return;
+                    }
+                }
+
+                currentPostId = post.id; // Store the post ID for comments
+                console.log("Found post:", post, "ID:", currentPostId);
+
+                // --- Populate Page Content ---
+                if(pageTitleTag) pageTitleTag.textContent = `${post.title} - LexoGraphix Plus`;
+                if(postTitleElement) postTitleElement.textContent = post.title;
+                if(postAuthorElement) postAuthorElement.textContent = post.author || 'LexoGraphix Plus';
+                const displayDate = formatDate(post.published_at || post.created_at); // Use main post date format
+                const dateTimeAttr = post.published_at || post.created_at;
+                if(postDateElement) { postDateElement.textContent = displayDate; postDateElement.dateTime = dateTimeAttr || ''; }
+                // Update featured image
+                if (post.cover_image_path && BLOG_IMAGE_BUCKET) {
+                    const { data: urlData } = supabaseClient.storage.from(BLOG_IMAGE_BUCKET).getPublicUrl(post.cover_image_path);
+                    if (urlData && urlData.publicUrl && postFeaturedImage) {
+                        postFeaturedImage.src = urlData.publicUrl;
+                        postFeaturedImage.alt = `Featured image for ${post.title}`;
+                        postFeaturedImage.style.display = ''; // Ensure visible
+                    } else {
+                         if(postFeaturedImage) postFeaturedImage.style.display = 'none';
+                         console.warn(`Could not get public URL for cover image: ${post.cover_image_path}`);
+                    }
+                } else if (postFeaturedImage) {
+                     postFeaturedImage.style.display = 'none';
+                }
+                // Inject content
+                if (postContentArea) {
+                     postContentArea.innerHTML = post.content || '<p><em>Content could not be loaded.</em></p>';
+                }
+                // --- End Populate Page Content ---
+
+                loadingIndicator.classList.add('hidden');
+                postContainer.classList.remove('hidden');
+
+                // *** Load comments for this post ***
+                await loadComments(currentPostId);
+
+            } catch (error) {
+                console.error("Error loading single blog post:", error);
+                loadingIndicator.classList.add('hidden');
+                if (notFoundMessage) {
+                    notFoundMessage.innerHTML = `<p>Sorry, there was an error loading this post: ${error.message}</p><p class="mt-4"><a href="blog.html" class="text-secondary hover:underline">← Back to Blog</a></p>`;
+                    notFoundMessage.classList.remove('hidden');
+                }
+            }
+        }
+
+        // --- Mobile Menu Toggle ---
+        const menuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuIconOpen = document.getElementById('menu-icon-open');
+        const menuIconClose = document.getElementById('menu-icon-close');
+        if(menuButton) {
+            menuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('show');
+                menuIconOpen.classList.toggle('hidden');
+                menuIconClose.classList.toggle('hidden');
+            });
+        }
+        const mobileNavLinks = mobileMenu.querySelectorAll('a');
+        mobileNavLinks.forEach(link => {
+             link.addEventListener('click', () => {
+                if (mobileMenu.classList.contains('show')) {
+                    mobileMenu.classList.remove('show');
+                    menuIconOpen.classList.remove('hidden');
+                    menuIconClose.classList.add('hidden');
+                }
+            });
+        });
+
+        // --- Footer Year & Animations ---
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+        const sectionsToAnimate = document.querySelectorAll('.page-enter');
+        const observer = new IntersectionObserver((entries) => {
+             entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('page-enter-active');
+            });
+        }, { threshold: 0.1 });
+        sectionsToAnimate.forEach(section => observer.observe(section));
+
+        // --- Add Comment Form Listener ---
+        if (commentForm) {
+            commentForm.addEventListener('submit', handleCommentSubmit);
+        } else {
+            console.warn("Comment form not found.");
+        }
+
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', loadSinglePost);
+
+    </script>
+</body>
+</html>
+

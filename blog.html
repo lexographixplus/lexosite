@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - LexoGraphix Plus</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+        .bg-primary { background-color: #002147; }
+        .text-primary { color: #002147; }
+        .bg-secondary { background-color: #C69E63; }
+        .text-secondary { color: #C69E63; }
+        .btn-primary { background-color: #C69E63; color: #002147; transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease; display: inline-block; }
+        .btn-primary:hover { background-color: #002147; color: #C69E63; transform: translateY(-2px); }
+        .btn-secondary { background-color: #002147; color: #FFFFFF; transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease; display: inline-block; }
+        .btn-secondary:hover { background-color: #103A67; color: #FFFFFF; transform: translateY(-2px); }
+        .nav-link-active { color: #C69E63 !important; font-weight: 700; }
+        .nav-link-inactive { color: #374151; }
+        .nav-link-inactive:hover { color: #C69E63; }
+        #mobile-menu { display: none; max-height: 0; overflow: hidden; transition: max-height 0.5s ease-in-out; }
+        #mobile-menu.show { display: block; max-height: 500px; }
+        .page-enter { opacity: 0; transform: translateY(20px); }
+        .page-enter-active { opacity: 1; transform: translateY(0); transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
+
+        /* Blog Card Styling (same as before) */
+        .blog-card { background-color: #ffffff; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1),0 2px 4px -1px rgba(0,0,0,0.06); overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease; display: flex; flex-direction: column; height: 100%; /* Ensure cards in grid align */ }
+        .blog-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1),0 4px 6px -2px rgba(0,0,0,0.06); }
+        .blog-card-image { width: 100%; height: 200px; object-fit: cover; background-color: #e5e7eb; /* Placeholder bg */ }
+        .blog-card-content { padding: 1.5rem; display: flex; flex-direction: column; flex-grow: 1; }
+        .blog-card-title { font-size: 1.25rem; font-weight: 600; color: #002147; margin-bottom: 0.5rem; line-height: 1.4; }
+        .blog-card-title a:hover { color: #C69E63; }
+        .blog-card-meta { font-size: 0.875rem; color: #6B7280; margin-bottom: 1rem; }
+        .blog-card-excerpt { font-size: 0.95rem; color: #4B5563; line-height: 1.6; margin-bottom: 1.5rem; flex-grow: 1; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; /* Limit excerpt to 3 lines */ }
+        .blog-card .btn-primary { margin-top: auto; align-self: flex-start; }
+
+        /* Loading/Empty State */
+        #blog-loading, #blog-empty { text-align: center; padding: 3rem 0; color: #6B7280; font-size: 1.1rem; }
+        #blog-loading i { margin-right: 0.5rem; }
+
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex-shrink-0">
+                    <a href="index.html" class="text-2xl font-bold text-primary hover:opacity-80 transition-opacity">
+                        LexoGraphix<span class="text-secondary">Plus</span>
+                    </a>
+                </div>
+                <nav id="desktop-menu" class="hidden md:flex space-x-6 lg:space-x-8 items-center">
+                    <a href="index.html" class="nav-link-inactive">Home</a>
+                    <a href="about.html" class="nav-link-inactive">About</a>
+                    <a href="services.html" class="nav-link-inactive">Services</a>
+                    <a href="platforms.html" class="nav-link-inactive">Platforms</a>
+                    <a href="blog.html" class="nav-link-active">Blog</a>
+                    <a href="contact.html" class="nav-link-inactive">Contact</a>
+                </nav>
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-button" aria-label="Open Menu" class="text-primary hover:text-secondary focus:outline-none">
+                        <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" id="menu-icon-open"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
+                        <svg class="h-7 w-7 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" id="menu-icon-close"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="md:hidden bg-white shadow-lg border-t border-gray-200">
+            <a href="index.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Home</a>
+            <a href="about.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">About</a>
+            <a href="services.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Services</a>
+            <a href="platforms.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Platforms</a>
+            <a href="blog.html" class="block px-4 py-3 text-secondary bg-gray-100 font-semibold">Blog</a>
+            <a href="contact.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Contact</a>
+            <a href="admin/login.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Admin</a>
+        </div>
+    </header>
+
+    <main>
+        <section class="bg-primary text-white py-16 md:py-24 page-enter">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h1 class="text-4xl sm:text-5xl font-bold">LexoGraphix Plus Blog</h1>
+                <p class="text-lg sm:text-xl mt-4 text-gray-300 max-w-2xl mx-auto">
+                    Insights, tips, author spotlights, and news from the Gambian literary scene.
+                </p>
+            </div>
+        </section>
+
+        <section class="py-16 md:py-24 bg-gray-50 page-enter">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+
+                <div id="blog-posts-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+                    <div id="blog-loading" class="md:col-span-2 lg:col-span-3">
+                        <p><i class="fas fa-spinner fa-spin"></i> Loading posts...</p>
+                    </div>
+                    </div>
+
+                <div id="blog-empty" class="hidden md:col-span-2 lg:col-span-3">
+                    <p>No blog posts found yet. Check back soon!</p>
+                </div>
+
+                <div id="blog-error" class="hidden md:col-span-2 lg:col-span-3 text-center text-red-600 py-10">
+                    <p>Could not load blog posts. Please try refreshing the page.</p>
+                </div>
+
+
+                </div>
+        </section>
+    </main>
+
+    <footer class="bg-primary text-gray-200 py-12 md:py-16">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+                <div class="lg:col-span-1"><h3 class="text-xl font-semibold text-secondary mb-4">LexoGraphix<span class="text-white">Plus</span></h3><p class="text-gray-300 leading-relaxed text-sm">Nurturing Young Gambian Voices, Shaping Our Literary Future.</p></div>
+                <div><h3 class="text-lg font-semibold text-secondary mb-4">Quick Links</h3><ul class="space-y-2 text-sm"><li><a href="index.html" class="hover:text-secondary">Home</a></li><li><a href="about.html" class="hover:text-secondary">About Us</a></li><li><a href="services.html" class="hover:text-secondary">Services</a></li><li><a href="platforms.html" class="hover:text-secondary">Platforms</a></li><li><a href="blog.html" class="hover:text-secondary">Blog</a></li><li><a href="contact.html" class="hover:text-secondary">Contact</a></li></ul></div>
+                <div><h3 class="text-lg font-semibold text-secondary mb-4">Resources</h3><ul class="space-y-2 text-sm"><li><a href="faq.html" class="hover:text-secondary">FAQ</a></li><li><a href="privacy.html" class="hover:text-secondary">Privacy Policy</a></li><li><a href="terms.html" class="hover:text-secondary">Terms of Service</a></li></ul></div>
+                <div><h3 class="text-lg font-semibold text-secondary mb-4">Get In Touch</h3><address class="not-italic text-gray-300 space-y-2 text-sm"><p><i class="fas fa-map-marker-alt fa-fw mr-2 text-secondary"></i> Serrekunda, The Gambia</p><p><i class="fas fa-phone-alt fa-fw mr-2 text-secondary"></i> (220) 2016679 / 5322922</p><p><i class="fas fa-envelope fa-fw mr-2 text-secondary"></i> <a href="mailto:info@lexographixplus.com" class="hover:text-secondary">info@lexographixplus.com</a></p></address><div class="mt-6 flex space-x-4"><a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" class="text-gray-300 hover:text-secondary text-xl"><i class="fab fa-facebook-f"></i></a><a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter / X" class="text-gray-300 hover:text-secondary text-xl"><i class="fab fa-twitter"></i></a><a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" class="text-gray-300 hover:text-secondary text-xl"><i class="fab fa-linkedin-in"></i></a><a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="text-gray-300 hover:text-secondary text-xl"><i class="fab fa-youtube"></i></a></div></div>
+            </div>
+            <div class="border-t border-gray-700 pt-8 text-center text-xs text-gray-400"><p>© <span id="currentYear"></span> LexoGraphix Plus. All Rights Reserved.</p></div>
+        </div>
+    </footer>
+
+    <script>
+        // --- Supabase Client Initialization ---
+        const SUPABASE_URL = 'https://pegnovymphacsysxdlbr.supabase.co'; // Your URL
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBlZ25vdnltcGhhY3N5c3hkbGJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2MjY1MzIsImV4cCI6MjA2MjIwMjUzMn0.d_bhl8FkahwNKlsoG94Wsa68wYDWwT_O7eVOUI40hdo'; // Your Key
+        const BLOG_IMAGE_BUCKET = 'blog-images'; // Your blog image bucket name
+        let supabaseClient = null;
+
+        try {
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            console.log('Supabase client initialized for blog page.');
+        } catch (error) {
+            console.error("Error initializing Supabase client:", error);
+            const blogError = document.getElementById('blog-error');
+            if(blogError) blogError.classList.remove('hidden');
+            const blogLoading = document.getElementById('blog-loading');
+             if(blogLoading) blogLoading.classList.add('hidden');
+        }
+
+        // --- DOM Elements ---
+        const postsContainer = document.getElementById('blog-posts-container');
+        const loadingIndicator = document.getElementById('blog-loading');
+        const emptyState = document.getElementById('blog-empty');
+        const errorState = document.getElementById('blog-error');
+
+        // --- Helper Functions ---
+         function escapeHtml(unsafe) {
+            if (unsafe === null || typeof unsafe === 'undefined') return '';
+            return unsafe.toString()
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
+
+        // Function to generate excerpt (simple text version)
+        function generateExcerpt(htmlContent, maxLength = 150) {
+            if (!htmlContent) return '';
+            // Create a temporary div to parse HTML and extract text
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = htmlContent;
+            const textContent = tempDiv.textContent || tempDiv.innerText || '';
+            // Trim and cut to length
+            if (textContent.length <= maxLength) {
+                return textContent;
+            }
+            return textContent.slice(0, maxLength) + '...';
+        }
+
+         // Format Date function
+        function formatDate(dateString) {
+            if (!dateString) return 'Date Unavailable';
+            try {
+                 // Try using published_at first, fallback to created_at if needed elsewhere
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+            } catch (e) {
+                console.error("Error formatting date:", dateString, e);
+                return 'Invalid Date';
+            }
+        }
+
+        // --- Core Function to Load Blog Posts ---
+        async function loadBlogPosts() {
+            if (!supabaseClient || !postsContainer || !loadingIndicator || !emptyState || !errorState) {
+                console.error("Initialization failed: Supabase client or DOM elements missing.");
+                if(errorState) errorState.classList.remove('hidden'); // Show error if elements missing
+                if(loadingIndicator) loadingIndicator.style.display = 'none';
+                return;
+            }
+
+            loadingIndicator.style.display = 'block'; // Show loading
+            emptyState.classList.add('hidden');
+            errorState.classList.add('hidden');
+            postsContainer.innerHTML = ''; // Clear previous content (except loading indicator if it's outside)
+
+            try {
+                // Fetch published posts, ordered by publish date (newest first)
+                // Modify '.order' if you use 'created_at' instead of 'published_at'
+                const { data: posts, error } = await supabaseClient
+                    .from('blog_posts')
+                    .select('id, title, slug, author, published_at, created_at, cover_image_path, content') // Fetch content for excerpt
+                    .eq('status', 'published') // Only fetch published posts
+                    .order('published_at', { ascending: false, nullsFirst: false }); // Show newest first, handle nulls if needed
+
+                if (error) throw error;
+
+                loadingIndicator.style.display = 'none'; // Hide loading
+
+                if (!posts || posts.length === 0) {
+                    emptyState.classList.remove('hidden'); // Show empty state
+                } else {
+                    console.log("Fetched posts:", posts);
+                    posts.forEach(post => {
+                        // Get cover image URL
+                        let imageUrl = 'https://placehold.co/600x400/EEEEEE/333333?text=No+Image'; // Default placeholder
+                        if (post.cover_image_path && BLOG_IMAGE_BUCKET) {
+                            const { data: urlData } = supabaseClient.storage
+                                .from(BLOG_IMAGE_BUCKET)
+                                .getPublicUrl(post.cover_image_path);
+                            if (urlData && urlData.publicUrl) {
+                                imageUrl = urlData.publicUrl;
+                            } else {
+                                console.warn(`Could not get public URL for ${post.cover_image_path}`);
+                            }
+                        }
+
+                        // Generate excerpt (using helper function)
+                        const excerpt = generateExcerpt(post.content, 120); // Adjust length as needed
+
+                        // Determine date to display (prefer published_at)
+                        const displayDate = formatDate(post.published_at || post.created_at);
+                        const dateTimeAttr = post.published_at || post.created_at; // Use for <time> datetime attr
+
+                        // Create post card HTML
+                        const postCard = `
+                            <article class="blog-card">
+                                <img src="${escapeHtml(imageUrl)}" alt="Cover image for ${escapeHtml(post.title)}" class="blog-card-image" loading="lazy">
+                                <div class="blog-card-content">
+                                    <p class="blog-card-meta">
+                                        <span class="font-semibold text-primary">${escapeHtml(post.author || 'LexoGraphix Plus')}</span> | <time datetime="${escapeHtml(dateTimeAttr)}">${escapeHtml(displayDate)}</time>
+                                        </p>
+                                    <h2 class="blog-card-title">
+                                        <a href="blog-post-single.html?slug=${encodeURIComponent(post.slug)}" class="hover:underline">${escapeHtml(post.title)}</a>
+                                    </h2>
+                                    <p class="blog-card-excerpt">
+                                        ${escapeHtml(excerpt)}
+                                    </p>
+                                    <a href="blog-post-single.html?slug=${encodeURIComponent(post.slug)}" class="btn-primary font-medium py-2 px-5 rounded-md text-sm">Read More <i class="fas fa-arrow-right text-xs ml-1"></i></a>
+                                </div>
+                            </article>
+                        `;
+                        postsContainer.innerHTML += postCard; // Append card to container
+                    });
+                }
+
+            } catch (error) {
+                console.error("Error loading blog posts:", error);
+                loadingIndicator.style.display = 'none'; // Hide loading
+                errorState.classList.remove('hidden'); // Show error state
+            }
+        }
+
+        // --- Mobile Menu Toggle --- (Keep existing code)
+        const menuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuIconOpen = document.getElementById('menu-icon-open');
+        const menuIconClose = document.getElementById('menu-icon-close');
+        if(menuButton) {
+            menuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('show');
+                menuIconOpen.classList.toggle('hidden');
+                menuIconClose.classList.toggle('hidden');
+            });
+        }
+        const mobileNavLinks = mobileMenu.querySelectorAll('a');
+        mobileNavLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (mobileMenu.classList.contains('show')) {
+                    mobileMenu.classList.remove('show');
+                    menuIconOpen.classList.remove('hidden');
+                    menuIconClose.classList.add('hidden');
+                }
+            });
+        });
+
+        // --- Footer Year & Animations --- (Keep existing code)
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+        const sectionsToAnimate = document.querySelectorAll('.page-enter');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('page-enter-active');
+            });
+        }, { threshold: 0.1 });
+        sectionsToAnimate.forEach(section => observer.observe(section));
+
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', loadBlogPosts);
+
+    </script>
+</body>
+</html>

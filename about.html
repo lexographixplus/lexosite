@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - LexoGraphix Plus</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        /* Custom styles to integrate brand colors and base styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth; /* For smooth scrolling on anchor links */
+        }
+        .bg-primary { background-color: #002147; } /* Navy Blue */
+        .text-primary { color: #002147; }
+        .border-primary { border-color: #002147; }
+
+        .bg-secondary { background-color: #C69E63; } /* Gold */
+        .text-secondary { color: #C69E63; }
+        .border-secondary { border-color: #C69E63; }
+
+        .btn-primary {
+            background-color: #C69E63; /* Gold */
+            color: #002147; /* Navy Blue */
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+            display: inline-block; /* Ensures proper padding and hover effects */
+        }
+        .btn-primary:hover {
+            background-color: #002147; /* Navy Blue */
+            color: #C69E63; /* Gold */
+            transform: translateY(-2px); /* Subtle lift effect */
+        }
+
+        .btn-secondary {
+            background-color: #002147; /* Navy Blue */
+            color: #FFFFFF; /* White */
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+            display: inline-block;
+        }
+        .btn-secondary:hover {
+            background-color: #103A67; /* Darker Navy */
+            color: #FFFFFF;
+            transform: translateY(-2px);
+        }
+
+        /* Active nav link styling */
+        .nav-link-active {
+            color: #C69E63 !important; /* Gold, !important to override base Tailwind/browser styles if needed */
+            font-weight: 700; /* Bolder for active link */
+        }
+        .nav-link-inactive {
+            color: #374151; /* Default text-gray-700 */
+        }
+        .nav-link-inactive:hover {
+            color: #C69E63; /* Gold on hover for inactive links */
+        }
+
+
+        /* Mobile Menu Styling */
+        #mobile-menu {
+            display: none; /* Hidden by default */
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+        }
+        #mobile-menu.show {
+            display: block; /* Make it block to participate in layout */
+            max-height: 500px; /* Adjust as needed, should be larger than content */
+        }
+
+        /* Page Transition Placeholder (if we add JS-based transitions later) */
+        .page-enter { opacity: 0; transform: translateY(20px); }
+        .page-enter-active { opacity: 1; transform: translateY(0); transition: opacity 300ms, transform 300ms; }
+
+        /* Section title styling */
+        .section-title {
+            font-size: 2.25rem; /* text-4xl */
+            font-weight: 700; /* bold */
+            color: #002147; /* text-primary */
+            margin-bottom: 1.5rem; /* mb-6 */
+            text-align: center;
+        }
+        .section-subtitle {
+            font-size: 1.125rem; /* text-lg */
+            color: #4B5563; /* text-gray-600 */
+            text-align: center;
+            max-width: 48rem; /* max-w-2xl */
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 3rem; /* mb-12 */
+        }
+
+        /* Card styles for core values */
+        .value-card {
+            background-color: #ffffff; /* White background */
+            border-radius: 0.75rem; /* rounded-xl */
+            padding: 2rem; /* p-8 */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%; /* Ensure cards in a row have same height if content varies */
+            display: flex;
+            flex-direction: column;
+        }
+        .value-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* shadow-2xl */
+        }
+        .value-card-icon {
+            font-size: 2.5rem; /* text-4xl */
+            margin-bottom: 1rem; /* mb-4 */
+            color: #C69E63; /* text-secondary */
+        }
+        .value-card-title {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 600; /* semibold */
+            color: #002147; /* text-primary */
+            margin-bottom: 0.75rem; /* mb-3 */
+        }
+        .value-card-text {
+            color: #4B5563; /* text-gray-600 */
+            line-height: 1.625; /* leading-relaxed */
+            flex-grow: 1; /* Allows text to take available space before button */
+        }
+
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex-shrink-0">
+                    <a href="index.html" class="text-2xl font-bold text-primary hover:opacity-80 transition-opacity">
+                        LexoGraphix<span class="text-secondary">Plus</span>
+                    </a>
+                </div>
+
+                <nav id="desktop-menu" class="hidden md:flex space-x-6 lg:space-x-8 items-center">
+                    <a href="index.html" class="nav-link-inactive transition duration-150 ease-in-out">Home</a>
+                    <a href="about.html" class="nav-link-active transition duration-150 ease-in-out">About</a>
+                    <a href="services.html" class="nav-link-inactive transition duration-150 ease-in-out">Services</a>
+                    <a href="platforms.html" class="nav-link-inactive transition duration-150 ease-in-out">Platforms</a>
+                    <a href="blog.html" class="nav-link-inactive transition duration-150 ease-in-out">Blog</a>
+                    <a href="contact.html" class="nav-link-inactive transition duration-150 ease-in-out">Contact</a>
+                </nav>
+
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-button" aria-label="Open Menu" class="text-primary hover:text-secondary focus:outline-none">
+                        <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" id="menu-icon-open">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                        <svg class="h-7 w-7 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" id="menu-icon-close">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="mobile-menu" class="md:hidden bg-white shadow-lg border-t border-gray-200">
+            <a href="index.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Home</a>
+            <a href="about.html" class="block px-4 py-3 text-secondary bg-gray-100 font-semibold">About</a>
+            <a href="services.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Services</a>
+            <a href="platforms.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Platforms</a>
+            <a href="blog.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Blog</a>
+            <a href="contact.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Contact</a>
+            <a href="admin/login.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Admin</a>
+        </div>
+    </header>
+
+    <main>
+        <section class="bg-primary text-white py-16 md:py-24">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h1 class="text-4xl sm:text-5xl font-bold">About LexoGraphix Plus</h1>
+                <p class="text-lg sm:text-xl mt-4 text-gray-300 max-w-2xl mx-auto">
+                    Nurturing Young Gambian Voices, Shaping Our Literary Future.
+                </p>
+            </div>
+        </section>
+
+        <section class="py-16 md:py-24 bg-gray-50">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <div class="flex items-center mb-4">
+                            <i class="fas fa-bullseye text-secondary text-3xl mr-4"></i>
+                            <h2 class="text-3xl font-semibold text-primary">Our Mission</h2>
+                        </div>
+                        <p class="text-gray-600 leading-relaxed">
+                            To empower young Gambian writers to professionally publish and promote their books, amplifying their unique voices and contributing to the growth of a vibrant literary future for The Gambia.
+                        </p>
+                    </div>
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                         <div class="flex items-center mb-4">
+                            <i class="fas fa-eye text-secondary text-3xl mr-4"></i>
+                            <h2 class="text-3xl font-semibold text-primary">Our Vision</h2>
+                        </div>
+                        <p class="text-gray-600 leading-relaxed">
+                            To be the leading partner for emerging young authors in The Gambia, recognized for our supportive approach, high-quality design, effective promotion strategies, and commitment to nurturing the next generation of Gambian storytellers.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-16 md:py-24 bg-white">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="section-title">Our Core Values</h2>
+                <p class="section-subtitle">
+                    These principles guide everything we do at LexoGraphix Plus, ensuring we stay true to our commitment to young Gambian writers and the literary community.
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="value-card">
+                        <div class="value-card-icon"><i class="fas fa-users-cog"></i></div>
+                        <h3 class="value-card-title">Youth Empowerment</h3>
+                        <p class="value-card-text">
+                            Placing young authors at the heart of the publishing process, providing opportunities for growth and recognition.
+                        </p>
+                    </div>
+                    <div class="value-card">
+                        <div class="value-card-icon"><i class="fas fa-lightbulb"></i></div>
+                        <h3 class="value-card-title">Creative Excellence</h3>
+                        <p class="value-card-text">
+                            Fostering the creation of compelling and impactful literary works.
+                        </p>
+                    </div>
+                    <div class="value-card">
+                        <div class="value-card-icon"><i class="fas fa-award"></i></div>
+                        <h3 class="value-card-title">Professionalism & Quality</h3>
+                        <p class="value-card-text">
+                            Delivering visually appealing and well-presented books that meet professional standards.
+                        </p>
+                    </div>
+                    <div class="value-card">
+                        <div class="value-card-icon"><i class="fas fa-hands-helping"></i></div>
+                        <h3 class="value-card-title">Accessibility & Support</h3>
+                        <p class="value-card-text">
+                            Providing accessible and supportive publishing and promotion solutions tailored to the needs of young writers.
+                        </p>
+                    </div>
+                    <div class="value-card">
+                        <div class="value-card-icon"><i class="fas fa-comments"></i></div>
+                        <h3 class="value-card-title">Community Building</h3>
+                        <p class="value-card-text">
+                            Connecting young Gambian writers with readers and the broader literary community within The Gambia.
+                        </p>
+                    </div>
+                     <div class="bg-gray-50 p-8 rounded-xl flex flex-col items-center justify-center text-center border-2 border-dashed border-gray-300">
+                        <i class="fas fa-seedling text-gray-400 text-4xl mb-3"></i>
+                        <h3 class="text-xl font-semibold text-gray-500">Growing Together</h3>
+                        <p class="text-gray-400">We are always evolving to better serve our authors.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-16 md:py-24 bg-gray-50">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="section-title">Meet the Team (Optional)</h2>
+                <p class="section-subtitle">
+                    The passionate individuals behind LexoGraphix Plus. (This section can be developed further if team details are provided.)
+                </p>
+                <div class="text-center">
+                    <img src="https://placehold.co/800x400/002147/C69E63?text=Team+Photo+Placeholder" alt="Team Placeholder" class="mx-auto rounded-lg shadow-md mb-6 max-w-full h-auto">
+                    <p class="text-gray-600">
+                        We are a dedicated group of professionals passionate about literature and empowering young talent in The Gambia.
+                        More details and individual profiles can be added here.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-secondary text-primary py-16">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 class="text-3xl sm:text-4xl font-bold mb-4">Ready to Share Your Story?</h2>
+                <p class="text-lg sm:text-xl mb-8 max-w-2xl mx-auto text-gray-800">
+                    LexoGraphix Plus is your partner in bringing your literary vision to life. Let's embark on this journey together.
+                </p>
+                <a href="contact.html" class="bg-primary text-white text-lg font-semibold py-3 px-8 rounded-lg shadow-md hover:bg-opacity-90 transform hover:scale-105 transition duration-300">
+                    Contact Us Today
+                </a>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-primary text-gray-200 py-12 md:py-16">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+                <div class="lg:col-span-1">
+                    <h3 class="text-xl font-semibold text-secondary mb-4">LexoGraphix<span class="text-white">Plus</span></h3>
+                    <p class="text-gray-300 leading-relaxed text-sm">
+                        Nurturing Young Gambian Voices, Shaping Our Literary Future.
+                    </p>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold text-secondary mb-4">Quick Links</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="index.html" class="hover:text-secondary transition duration-150">Home</a></li>
+                        <li><a href="about.html" class="hover:text-secondary transition duration-150">About Us</a></li>
+                        <li><a href="services.html" class="hover:text-secondary transition duration-150">Services</a></li>
+                        <li><a href="platforms.html" class="hover:text-secondary transition duration-150">Platforms</a></li>
+                        <li><a href="blog.html" class="hover:text-secondary transition duration-150">Blog</a></li>
+                        <li><a href="contact.html" class="hover:text-secondary transition duration-150">Contact</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold text-secondary mb-4">Resources</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#faq" class="hover:text-secondary transition duration-150">FAQ</a></li>
+                        <li><a href="#privacy" class="hover:text-secondary transition duration-150">Privacy Policy</a></li>
+                        <li><a href="#terms" class="hover:text-secondary transition duration-150">Terms of Service</a></li>
+                    </ul>
+                </div>
+
+
+                <div>
+                    <h3 class="text-lg font-semibold text-secondary mb-4">Get In Touch</h3>
+                    <address class="not-italic text-gray-300 space-y-2 text-sm">
+                        <p><i class="fas fa-map-marker-alt fa-fw mr-2 text-secondary"></i> Serrekunda, The Gambia</p>
+                        <p><i class="fas fa-phone-alt fa-fw mr-2 text-secondary"></i> (220) 2016679 / 5322922</p>
+                        <p><i class="fas fa-envelope fa-fw mr-2 text-secondary"></i> <a href="mailto:info@lexographixplus.com" class="hover:text-secondary">info@lexographixplus.com</a></p>
+                    </address>
+                    <div class="mt-6 flex space-x-4">
+                        <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" class="text-gray-300 hover:text-secondary text-xl"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter / X" class="text-gray-300 hover:text-secondary text-xl"><i class="fab fa-twitter"></i></a>
+                        <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" class="text-gray-300 hover:text-secondary text-xl"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="text-gray-300 hover:text-secondary text-xl"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 pt-8 text-center text-xs text-gray-400">
+                <p>&copy; <span id="currentYear"></span> LexoGraphix Plus. All Rights Reserved. Empowering Gambian Writers.</p>
+                 <p>Website by [Your Name/Company if desired, or remove]</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // JavaScript for Mobile Menu Toggle
+        const menuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuIconOpen = document.getElementById('menu-icon-open');
+        const menuIconClose = document.getElementById('menu-icon-close');
+
+        menuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('show');
+            menuIconOpen.classList.toggle('hidden');
+            menuIconClose.classList.toggle('hidden');
+        });
+
+        // Close mobile menu when a link is clicked
+        const mobileNavLinks = mobileMenu.querySelectorAll('a');
+        mobileNavLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (mobileMenu.classList.contains('show')) {
+                    mobileMenu.classList.remove('show');
+                    menuIconOpen.classList.remove('hidden');
+                    menuIconClose.classList.add('hidden');
+                }
+            });
+        });
+
+        // Set current year in footer
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // Optional: Simple fade-in for sections on scroll (can be enhanced)
+        const sections = document.querySelectorAll('main section');
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1 // Trigger when 10% of the section is visible
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('page-enter-active');
+                    entry.target.classList.remove('page-enter'); // Start with page-enter for initial state
+                    // observer.unobserve(entry.target); // Optional: stop observing after animation
+                }
+            });
+        }, observerOptions);
+
+        sections.forEach(section => {
+            section.classList.add('page-enter'); // Add initial state for animation
+            observer.observe(section);
+        });
+
+    </script>
+
+</body>
+</html>

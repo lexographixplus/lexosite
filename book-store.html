@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Store - LexoGraphix Plus</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* Base Styles */
+        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; background-color: #F9FAFB; }
+        .bg-primary { background-color: #002147; } .text-primary { color: #002147; }
+        .bg-secondary { background-color: #C69E63; } .text-secondary { color: #C69E63; }
+        .btn-primary { background-color: #C69E63; color: #002147; transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease; display: inline-block; padding: 0.6rem 1.2rem; border-radius: 0.375rem; font-weight: 500; }
+        .btn-primary:hover { background-color: #002147; color: #C69E63; transform: translateY(-2px); }
+        .btn-primary:disabled { background-color: #b08d57; color: #001a38; cursor: not-allowed; opacity: 0.7;}
+        .btn-secondary { background-color: #002147; color: #FFFFFF; transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease; display: inline-block; padding: 0.6rem 1.2rem; border-radius: 0.375rem; font-weight: 500; }
+        .btn-secondary:hover { background-color: #103A67; color: #FFFFFF; transform: translateY(-2px); }
+        .btn-secondary:disabled { background-color: #103A67; opacity: 0.7; cursor: not-allowed; }
+        .nav-link-active { color: #C69E63 !important; font-weight: 700; }
+        .nav-link-inactive { color: #374151; } .nav-link-inactive:hover { color: #C69E63; }
+        #mobile-menu { display: none; max-height: 0; overflow: hidden; transition: max-height 0.5s ease-in-out; }
+        #mobile-menu.show { display: block; max-height: 500px; }
+
+        /* Book Card Styling */
+        .book-card { background-color: #ffffff; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.07),0 2px 4px -1px rgba(0,0,0,0.05); overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease; display: flex; flex-direction: column; height: 100%; }
+        .book-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1),0 4px 6px -2px rgba(0,0,0,0.06); }
+        .book-card-image { width: 100%; height: 250px; object-fit: cover; background-color: #e5e7eb; }
+        .book-card-content { padding: 1rem 1.5rem 1.5rem; display: flex; flex-direction: column; flex-grow: 1; }
+        .book-card-title { font-size: 1.1rem; font-weight: 600; color: #002147; margin-bottom: 0.25rem; line-height: 1.3; }
+        .book-card-author { font-size: 0.85rem; color: #6B7280; margin-bottom: 1rem; flex-grow: 1; }
+        .book-card .btn-primary { margin-top: auto; align-self: stretch; text-align: center; }
+
+        /* Loading/Empty State */
+        #books-state-indicator { text-align: center; padding: 3rem 0; color: #6B7280; font-size: 1.1rem; }
+        #books-state-indicator i { margin-right: 0.5rem; }
+
+        /* Modal Styling */
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; overflow: hidden; background-color: rgba(0,0,0,0.7); }
+        .modal.show { display: flex; align-items: center; justify-content: center; }
+        .modal-content { background-color: #fefefe; margin: auto; padding: 0; border: 1px solid #888; width: 95%; max-width: 800px; border-radius: 0.5rem; position: relative; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; }
+        .modal-close { color: #aaa; position: absolute; top: 10px; right: 20px; font-size: 32px; font-weight: bold; cursor: pointer; line-height: 1; z-index: 110; }
+        .modal-close:hover, .modal-close:focus { color: black; text-decoration: none; }
+
+        /* Modal Views Styling - Added position and z-index */
+        .modal-view {
+            padding: 20px;
+            overflow-y: auto;
+            flex-grow: 1;
+            position: relative; /* Needed for z-index */
+            z-index: 1; /* Default z-index */
+            display: none; /* Hide all by default via style */
+        }
+        .modal-view.active-view {
+             z-index: 2; /* Active view is on top */
+             display: block; /* Default display for active view */
+        }
+        #modal-reader-view.active-view {
+             display: flex; /* Reader view needs flex */
+        }
+        /* Specific view styles */
+        #modal-reader-view { flex-direction: column; align-items: center; justify-content: space-between; padding: 10px; }
+        #modal-form-view { padding: 30px; }
+
+        #modal-page-image { max-width: 100%; max-height: calc(90vh - 120px); object-fit: contain; display: block; margin-bottom: 1rem; }
+        .modal-page-nav { width: 100%; display: flex; justify-content: space-between; padding: 10px 0 0; margin-top: auto; }
+        .modal-page-nav button { background-color: #002147; color: white; border: none; border-radius: 0.375rem; padding: 0.5rem 1rem; font-size: 0.9rem; cursor: pointer; transition: background-color 0.2s; }
+        .modal-page-nav button:hover { background-color: #103A67; }
+        .modal-page-nav button:disabled { background-color: #9ca3af; cursor: not-allowed; }
+        #modal-page-indicator { text-align: center; color: #6B7280; font-size: 0.9rem; margin-top: 0.5rem; }
+
+        /* Form input styling for modal form */
+        .modal-form-input { width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 0.5rem; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;}
+        .modal-form-input:focus { outline: none; border-color: #C69E63; box-shadow: 0 0 0 3px rgba(198, 158, 99, 0.3); }
+        .modal-form-label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: #1F2937; }
+        #modal-form-message { display: none; }
+        .message-success { background-color: #D1FAE5; color: #065F46; border: 1px solid #6EE7B7; padding: 0.75rem; border-radius: 0.375rem; margin-top: 1rem; }
+        .message-error { background-color: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5; padding: 0.75rem; border-radius: 0.375rem; margin-top: 1rem; }
+
+        /* Remove temporary debug styles */
+        /*
+        #books-container { border: 3px solid red !important; min-height: 100px !important; padding: 10px !important; background-color: lightyellow !important; }
+        .book-card { border: 2px solid blue !important; min-height: 50px !important; background-color: lightcyan !important; }
+        */
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex-shrink-0">
+                    <a href="index.html" class="text-2xl font-bold text-primary hover:opacity-80 transition-opacity">
+                        LexoGraphix<span class="text-secondary">Plus</span>
+                    </a>
+                </div>
+                <nav id="desktop-menu" class="hidden md:flex space-x-6 lg:space-x-8 items-center">
+                    <a href="index.html" class="nav-link-inactive">Home</a>
+                    <a href="about.html" class="nav-link-inactive">About</a>
+                    <a href="services.html" class="nav-link-inactive">Services</a>
+                    <a href="platforms.html" class="nav-link-inactive">Platforms</a>
+                    <a href="blog.html" class="nav-link-inactive">Blog</a>
+                    <a href="contact.html" class="nav-link-inactive">Contact</a>
+                </nav>
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-button" aria-label="Open Menu" class="text-primary hover:text-secondary focus:outline-none">
+                        <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" id="menu-icon-open"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
+                        <svg class="h-7 w-7 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" id="menu-icon-close"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="md:hidden bg-white shadow-lg border-t border-gray-200">
+            <a href="index.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Home</a>
+            <a href="about.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">About</a>
+            <a href="services.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Services</a>
+            <a href="platforms.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Platforms</a>
+            <a href="blog.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Blog</a>
+            <a href="contact.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Contact</a>
+            <a href="admin/login.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Admin</a>
+        </div>
+    </header>
+
+    <main>
+        <section class="bg-primary text-white py-16 md:py-24">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h1 class="text-4xl sm:text-5xl font-bold">LexoGraphix Plus Book Store</h1>
+                <p class="text-lg sm:text-xl mt-4 text-gray-300 max-w-2xl mx-auto">
+                    Discover compelling stories and insightful works from talented Gambian authors supported by LexoGraphix Plus.
+                </p>
+            </div>
+        </section>
+
+        <section class="py-16 md:py-24 bg-gray-50">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div id="books-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+                    </div>
+                <div id="books-state-indicator">
+                     <p><i class="fas fa-spinner fa-spin"></i> Loading books...</p>
+                 </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="bookDetailModal" class="modal">
+      <div class="modal-content">
+        <span class="modal-close" onclick="closeModal()">×</span>
+
+        <div id="modal-reader-view" class="modal-view hidden">
+             <img id="modal-page-image" src="" alt="Book Page" class="block mb-4 max-w-full max-h-[75vh] object-contain">
+             <div id="modal-page-indicator" class="text-center text-sm text-gray-600 mb-2">Page X of Y</div>
+             <div class="modal-page-nav">
+                 <button id="prev-page-button" title="Previous Page"><i class="fas fa-chevron-left mr-1"></i> Prev</button>
+                 <button id="next-page-button" title="Next Page">Next <i class="fas fa-chevron-right ml-1"></i></button>
+             </div>
+        </div>
+
+        <div id="modal-form-view" class="modal-view hidden">
+            <h3 class="text-xl font-semibold text-primary mb-3 text-center">Enjoying the Book?</h3>
+            <p class="text-center text-gray-600 mb-6">Get a full copy and support the author! Fill out the form below to inquire.</p>
+            <form id="modalContactForm" class="space-y-4 max-w-md mx-auto">
+                 <input type="hidden" id="modal-book-title-input" name="book_title">
+                 <div>
+                     <label for="modal-contact-name" class="modal-form-label">Full Name <span class="text-red-500">*</span></label>
+                     <input type="text" id="modal-contact-name" name="name" class="modal-form-input" required placeholder="Your Name">
+                 </div>
+                 <div>
+                     <label for="modal-contact-email" class="modal-form-label">Email Address <span class="text-red-500">*</span></label>
+                     <input type="email" id="modal-contact-email" name="email" class="modal-form-input" required placeholder="you@example.com">
+                 </div>
+                 <div>
+                     <label for="modal-contact-message" class="modal-form-label">Message</label>
+                     <textarea id="modal-contact-message" name="message" rows="3" class="modal-form-input" placeholder="Optional message (e.g., specific questions)"></textarea>
+                 </div>
+                 <div>
+                     <button type="submit" id="modalContactSubmitButton" class="btn-secondary font-semibold py-2.5 px-6 rounded-lg w-full">Send Inquiry</button>
+                 </div>
+             </form>
+             <div id="modal-form-message" class="mt-4 text-center"></div>
+              <div class="text-center mt-4">
+                 <button onclick="showBookPage(currentBookPages.length - 1)" class="text-sm text-gray-500 hover:text-primary underline">← Go Back to Last Page</button>
+             </div>
+        </div>
+
+      </div> </div> <footer class="bg-primary text-gray-200 py-12 md:py-16">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+                <div class="lg:col-span-1"><h3 class="text-xl font-semibold text-secondary mb-4">LexoGraphix<span class="text-white">Plus</span></h3><p class="text-gray-300 leading-relaxed text-sm">Nurturing Young Gambian Voices, Shaping Our Literary Future.</p></div>
+                <div><h3 class="text-lg font-semibold text-secondary mb-4">Quick Links</h3><ul class="space-y-2 text-sm"><li><a href="index.html" class="hover:text-secondary">Home</a></li><li><a href="about.html" class="hover:text-secondary">About Us</a></li><li><a href="services.html" class="hover:text-secondary">Services</a></li><li><a href="platforms.html" class="hover:text-secondary">Platforms</a></li><li><a href="blog.html" class="hover:text-secondary">Blog</a></li><li><a href="contact.html" class="hover:text-secondary">Contact</a></li></ul></div>
+                <div><h3 class="text-lg font-semibold text-secondary mb-4">Resources</h3><ul class="space-y-2 text-sm"><li><a href="faq.html" class="hover:text-secondary">FAQ</a></li><li><a href="privacy.html" class="hover:text-secondary">Privacy Policy</a></li><li><a href="terms.html" class="hover:text-secondary">Terms of Service</a></li></ul></div>
+                <div><h3 class="text-lg font-semibold text-secondary mb-4">Get In Touch</h3><address class="not-italic text-gray-300 space-y-2 text-sm"><p><i class="fas fa-map-marker-alt fa-fw mr-2 text-secondary"></i> Serrekunda, The Gambia</p><p><i class="fas fa-phone-alt fa-fw mr-2 text-secondary"></i> (220) 2016679 / 5322922</p><p><i class="fas fa-envelope fa-fw mr-2 text-secondary"></i> <a href="mailto:info@lexographixplus.com" class="hover:text-secondary">info@lexographixplus.com</a></p></address><div class="mt-6 flex space-x-4"><a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" class="text-gray-300 hover:text-secondary text-xl"><i class="fab fa-facebook-f"></i></a><a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter / X" class="text-gray-300 hover:text-secondary text-xl"><i class="fab fa-twitter"></i></a><a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" class="text-gray-300 hover:text-secondary text-xl"><i class="fab fa-linkedin-in"></i></a><a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="text-gray-300 hover:text-secondary text-xl"><i class="fab fa-youtube"></i></a></div></div>
+            </div>
+            <div class="border-t border-gray-700 pt-8 text-center text-xs text-gray-400"><p>© <span id="currentYear"></span> LexoGraphix Plus. All Rights Reserved.</p></div>
+        </div>
+    </footer>
+
+    <script>
+        // --- Supabase Config ---
+        const SUPABASE_URL = 'https://pegnovymphacsysxdlbr.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBlZ25vdnltcGhhY3N5c3hkbGJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2MjY1MzIsImV4cCI6MjA2MjIwMjUzMn0.d_bhl8FkahwNKlsoG94Wsa68wYDWwT_O7eVOUI40hdo';
+        const BOOK_COVER_BUCKET = 'book-covers';
+        let supabaseClient = null;
+
+        // --- Global State ---
+        let allBooksData = [];
+        let currentBookPages = [];
+        let currentPageIndex = 0;
+        let currentBookInModal = null;
+        let currentModalPhase = 'closed';
+
+        // --- DOM Elements ---
+        let booksContainer, stateIndicator, modal, modalReaderView, modalFormView,
+            modalPageImage, prevPageButton, nextPageButton, modalPageIndicator,
+            modalContactForm, modalContactSubmitButton, modalFormMessage,
+            modalBookTitleInput, menuButton, mobileMenu, menuIconOpen, menuIconClose, currentYearSpan;
+
+        // --- Helper Functions ---
+         function escapeHtml(unsafe) {
+             if (unsafe === null || typeof unsafe === 'undefined') return '';
+             let safe = unsafe.toString();
+             safe = safe.replace(/&/g, "&amp;");
+             safe = safe.replace(/</g, "&lt;");
+             safe = safe.replace(/>/g, "&gt;");
+             safe = safe.replace(/"/g, "&quot;");
+             safe = safe.replace(/'/g, "&#039;");
+             return safe;
+        }
+        function showState(type, message = '') {
+            if (!stateIndicator) return;
+            stateIndicator.classList.remove('hidden');
+            if (type === 'loading') {
+                stateIndicator.innerHTML = `<p><i class="fas fa-spinner fa-spin"></i> Loading books...</p>`;
+                if (booksContainer) booksContainer.innerHTML = '';
+            } else if (type === 'empty') {
+                stateIndicator.innerHTML = `<p>No books found in the store yet. Check back soon!</p>`;
+                 if (booksContainer) booksContainer.innerHTML = '';
+            } else if (type === 'error') {
+                stateIndicator.innerHTML = `<p class="text-red-600">Could not load books: ${escapeHtml(message)}</p>`;
+                 if (booksContainer) booksContainer.innerHTML = '';
+            } else if (type === 'loaded') {
+                stateIndicator.classList.add('hidden');
+            }
+        }
+
+        // --- Modal State Management (with z-index) ---
+        function showModalView(phase) {
+            currentModalPhase = phase;
+            console.log(`Attempting to switch modal view to: ${phase}`);
+
+            const readerView = document.getElementById('modal-reader-view');
+            const formView = document.getElementById('modal-form-view');
+
+            if (!readerView || !formView) {
+                console.error("Modal view elements not found inside showModalView!");
+                return;
+            }
+
+            // Hide all views first using inline styles AND remove active class
+            console.log("Hiding all modal views...");
+            readerView.style.display = 'none';
+            formView.style.display = 'none';
+            readerView.classList.remove('active-view'); // Remove active class
+            formView.classList.remove('active-view');   // Remove active class
+            console.log("Reader view display:", readerView.style.display, "Active:", readerView.classList.contains('active-view'));
+            console.log("Form view display:", formView.style.display, "Active:", formView.classList.contains('active-view'));
+
+            // Show the target view using appropriate display style AND add active class
+            let viewToShow = null;
+            let displayStyle = 'block'; // Default display
+
+            switch (phase) {
+                case 'reader':
+                    viewToShow = readerView;
+                    displayStyle = 'flex'; // Reader view uses flex
+                    break;
+                case 'form':
+                    viewToShow = formView;
+                    displayStyle = 'block'; // Form view uses block
+                    break;
+                default:
+                    console.error("Tried to show unknown modal view:", phase);
+                    closeModal();
+                    return;
+            }
+
+            if (viewToShow) {
+                console.log(`Showing view: ${phase} with display: ${displayStyle}`);
+                viewToShow.style.display = displayStyle; // Force show
+                viewToShow.classList.add('active-view'); // Add active class for z-index
+                console.log(`View ${phase} display style:`, viewToShow.style.display, "Active:", viewToShow.classList.contains('active-view'));
+            }
+        }
+
+
+        // --- Modal Open/Close ---
+        function openModal(bookId) {
+            currentBookInModal = allBooksData.find(b => b.id === bookId);
+            if (!currentBookInModal || !modal || !supabaseClient) {
+                console.error("Cannot open modal: Book data, modal element, or Supabase client missing.");
+                return;
+            }
+            console.log("Opening modal for book:", currentBookInModal.title);
+            currentBookPages = []; // Reset pages list
+
+            // --- Prepare ordered list of pages ---
+            let coverUrl = 'https://placehold.co/400x600/EEEEEE/333333?text=No+Cover';
+             if (currentBookInModal.cover_url && BOOK_COVER_BUCKET) {
+                try {
+                    const { data: urlData } = supabaseClient.storage.from(BOOK_COVER_BUCKET).getPublicUrl(currentBookInModal.cover_url);
+                    if (urlData && urlData.publicUrl) coverUrl = urlData.publicUrl;
+                    else console.warn(`Could not get public URL for cover: ${currentBookInModal.cover_url}`);
+                } catch (storageError) { console.error("Error getting cover URL:", storageError); }
+             }
+             currentBookPages.push(coverUrl); // Add cover as page 0
+
+             const samplePageFields = ['page1_url', 'page2_url', 'page3_url', 'page4_url'];
+             samplePageFields.forEach(field => {
+                if (currentBookInModal[field] && BOOK_COVER_BUCKET) {
+                    try {
+                        const { data: urlData } = supabaseClient.storage.from(BOOK_COVER_BUCKET).getPublicUrl(currentBookInModal[field]);
+                        if (urlData && urlData.publicUrl) currentBookPages.push(urlData.publicUrl);
+                        else console.warn(`Could not get public URL for sample ${field}: ${currentBookInModal[field]}`);
+                    } catch (storageError) { console.error(`Error getting sample URL for ${field}:`, storageError); }
+                }
+             });
+             console.log("Prepared pages for reader:", currentBookPages);
+
+             // --- Populate Form Data ---
+             modalBookTitleInput.value = currentBookInModal.title || 'Untitled Book';
+
+            // --- Show Initial Page ---
+            if (currentBookPages.length > 0) {
+                showBookPage(0); // Show the first page (cover) in reader view
+                modal.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            } else {
+                console.error("No cover or sample pages found for this book.");
+                alert("Sorry, no preview available for this book.");
+            }
+        }
+
+        function closeModal() {
+            if (modal) {
+                modal.classList.remove('show');
+                document.body.style.overflow = '';
+                currentBookPages = [];
+                currentPageIndex = 0;
+                currentBookInModal = null;
+                currentModalPhase = 'closed';
+                if(modalFormMessage) modalFormMessage.style.display = 'none';
+            }
+        }
+
+        // --- Book Page Navigation ---
+        function showBookPage(index) {
+            if (!currentBookPages || index < 0 || index >= currentBookPages.length) {
+                console.error("Invalid page index or no pages:", index);
+                showModalView('form'); // Fallback to form if index is invalid
+                return;
+            }
+            currentPageIndex = index;
+            modalPageImage.src = currentBookPages[index];
+            modalPageImage.alt = index === 0 ? `Cover for ${currentBookInModal?.title || 'book'}` : `Sample page ${index} for ${currentBookInModal?.title || 'book'}`;
+
+            // Update page indicator
+            if (index === 0) {
+                 modalPageIndicator.textContent = `Cover`;
+            } else {
+                 modalPageIndicator.textContent = `Page ${index} of ${currentBookPages.length - 1}`;
+            }
+
+            // Update button states
+            prevPageButton.disabled = (index === 0);
+            nextPageButton.disabled = false; // Always enabled in reader view
+
+            showModalView('reader'); // Ensure reader view is shown
+        }
+
+        // --- Modal Navigation Logic ---
+        function handleNextClick() {
+            console.log("Next clicked, current page index:", currentPageIndex, "Total pages:", currentBookPages.length);
+            if (currentPageIndex < currentBookPages.length - 1) {
+                showBookPage(currentPageIndex + 1);
+            } else {
+                console.log("Last page reached, showing form.");
+                showModalView('form');
+                modalFormMessage.style.display = 'none';
+                modalContactForm.reset();
+            }
+        }
+
+        // --- Modal Contact Form Submission ---
+         async function handleModalFormSubmit(event) {
+             event.preventDefault();
+             if (!supabaseClient || !modalContactForm) return;
+
+             modalContactSubmitButton.disabled = true;
+             modalContactSubmitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Sending...';
+             modalFormMessage.style.display = 'none';
+
+             const formData = new FormData(modalContactForm);
+             const name = formData.get('name');
+             const email = formData.get('email');
+             const message = formData.get('message');
+             const bookTitle = modalBookTitleInput.value;
+
+             if (!name || !email) {
+                 displayModalFormMessage('Please enter your name and email.', 'error');
+                 modalContactSubmitButton.disabled = false;
+                 modalContactSubmitButton.innerHTML = 'Send Inquiry';
+                 return;
+             }
+
+              try {
+                 console.log("Attempting to insert lead from modal...");
+                 const { data, error } = await supabaseClient
+                     .from('contact_messages')
+                     .insert([{
+                         name: name, email: email,
+                         message: `Inquiry about "${bookTitle}":\n${message || '(No additional message)'}`,
+                         service_inquiry: 'Book Store Lead',
+                         submitted_at: new Date().toISOString(), replied: false
+                     }]);
+                 if (error) throw error;
+                 console.log("Modal lead insert successful:", data);
+                 displayModalFormMessage('Thank you! Your inquiry has been sent.', 'success');
+                 modalContactForm.reset();
+             } catch (error) {
+                 console.error('Error submitting modal contact form:', error);
+                 displayModalFormMessage(`Sorry, error sending inquiry: ${error.message}.`, 'error');
+             } finally {
+                 modalContactSubmitButton.disabled = false;
+                 modalContactSubmitButton.innerHTML = 'Send Inquiry';
+             }
+          }
+         function displayModalFormMessage(message, type) {
+             if (!modalFormMessage) return;
+             modalFormMessage.textContent = message;
+             modalFormMessage.className = '';
+             modalFormMessage.classList.add('p-3', 'rounded-md', 'text-sm', 'mt-3', type === 'success' ? 'message-success' : 'message-error');
+             modalFormMessage.style.display = 'block';
+         }
+
+        // --- Core Function to Load Books ---
+       async function loadBooks() {
+           console.log("loadBooks function started.");
+           if (!supabaseClient) { console.error("loadBooks: Supabase client is not initialized."); showState('error', 'Backend connection error.'); return; }
+           if (!booksContainer || !stateIndicator) { console.error("loadBooks: Required DOM elements not found."); alert("Page structure error."); return; }
+           console.log("loadBooks: DOM elements and Supabase client are ready.");
+
+           showState('loading');
+
+           try {
+               console.log("loadBooks: Fetching books from Supabase...");
+               const { data: books, error } = await supabaseClient.from('books').select('*').order('created_at', { ascending: false });
+               if (error) { console.error("loadBooks: Supabase fetch error:", error); throw error; }
+               console.log("loadBooks: Supabase fetch successful. Books data:", books);
+
+               allBooksData = books || [];
+
+               if (allBooksData.length === 0) {
+                   console.log("loadBooks: No books found. Displaying empty state.");
+                   showState('empty');
+               } else {
+                   console.log(`loadBooks: Rendering ${allBooksData.length} books...`);
+                   booksContainer.innerHTML = '';
+                   allBooksData.forEach((book, index) => {
+                       console.log(`loadBooks: Processing book ${index + 1}:`, book.title);
+                       let imageUrl = 'https://placehold.co/400x600/EEEEEE/333333?text=No+Cover';
+                       if (book.cover_url && BOOK_COVER_BUCKET) {
+                           try {
+                               const { data: urlData } = supabaseClient.storage.from(BOOK_COVER_BUCKET).getPublicUrl(book.cover_url);
+                               if (urlData && urlData.publicUrl) { imageUrl = urlData.publicUrl; console.log(`loadBooks: Got public URL: ${imageUrl}`); }
+                               else { console.warn(`loadBooks: Failed to get public URL for ${book.cover_url}`); }
+                           } catch(storageError) { console.error(`Error getting storage URL for ${book.cover_url}:`, storageError); }
+                       } else { console.log(`loadBooks: No cover_url or bucket for book ${book.title}`); }
+
+                       // Updated Book Card HTML with button triggering modal
+                       const bookCardHTML = `
+                           <div class="book-card">
+                               <img src="${escapeHtml(imageUrl)}" alt="Cover for ${escapeHtml(book.title)}" class="book-card-image" loading="lazy" onerror="this.onerror=null; this.src='https://placehold.co/400x600/EEEEEE/DDDDDD?text=Load+Error'; console.error('Failed to load image: ${escapeHtml(imageUrl)}');">
+                               <div class="book-card-content">
+                                   <h2 class="book-card-title">${escapeHtml(book.title)}</h2>
+                                   <p class="book-card-author">by ${escapeHtml(book.author || 'Unknown Author')}</p>
+                                   <button onclick="openModal('${book.id}')" class="btn-primary mt-4">
+                                       <i class="fas fa-book-open mr-2"></i>Read Book
+                                   </button>
+                               </div>
+                           </div>
+                       `;
+                       booksContainer.innerHTML += bookCardHTML;
+                   });
+                   console.log("loadBooks: Finished rendering books.");
+                   showState('loaded');
+               }
+           } catch (error) {
+               console.error("loadBooks: Caught error during loading/rendering:", error);
+               showState('error', error.message);
+           }
+       }
+
+        // --- Initialize Everything on DOMContentLoaded ---
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOMContentLoaded event fired.");
+
+            // Assign DOM Elements
+            booksContainer = document.getElementById('books-container');
+            stateIndicator = document.getElementById('books-state-indicator');
+            modal = document.getElementById('bookDetailModal');
+            modalReaderView = document.getElementById('modal-reader-view');
+            modalFormView = document.getElementById('modal-form-view');
+            modalPageImage = document.getElementById('modal-page-image');
+            prevPageButton = document.getElementById('prev-page-button');
+            nextPageButton = document.getElementById('next-page-button');
+            modalPageIndicator = document.getElementById('modal-page-indicator');
+            modalContactForm = document.getElementById('modalContactForm');
+            modalContactSubmitButton = document.getElementById('modalContactSubmitButton');
+            modalFormMessage = document.getElementById('modal-form-message');
+            modalBookTitleInput = document.getElementById('modal-book-title-input');
+            menuButton = document.getElementById('mobile-menu-button');
+            mobileMenu = document.getElementById('mobile-menu');
+            menuIconOpen = document.getElementById('menu-icon-open');
+            menuIconClose = document.getElementById('menu-icon-close');
+            currentYearSpan = document.getElementById('currentYear');
+
+             // Check if essential elements exist
+            if (!booksContainer || !stateIndicator || !modal || !modalReaderView || !modalFormView || !modalPageImage || !prevPageButton || !nextPageButton) {
+                 console.error("Essential page or modal elements not found. Aborting script.");
+                 if(stateIndicator) showState('error', 'Page structure error.');
+                 return;
+            }
+
+            // Initialize Supabase Client
+            try {
+                if (typeof supabase === 'undefined' || !supabase.createClient) { throw new Error("Supabase library not loaded."); }
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('Supabase client initialized successfully.');
+                loadBooks(); // Load books only after successful init
+            } catch (error) {
+                console.error("Error initializing Supabase client:", error);
+                showState('error', `Backend initialization failed: ${error.message}`);
+                return;
+            }
+
+            // Setup Listeners only if Supabase initialized
+            if(supabaseClient) {
+                // Modal Navigation Listeners
+                prevPageButton.addEventListener('click', () => { if (currentPageIndex > 0) showBookPage(currentPageIndex - 1); });
+                nextPageButton.addEventListener('click', handleNextClick);
+                if(modalContactForm) modalContactForm.addEventListener('submit', handleModalFormSubmit); else console.error("Modal Contact Form not found");
+
+                // Close listeners
+                window.onclick = function(event) { if (event.target == modal) closeModal(); }
+                window.addEventListener('keydown', function (event) { if (event.key === 'Escape' && modal.classList.contains('show')) closeModal(); });
+                const closeButton = modal.querySelector('.modal-close');
+                if(closeButton) closeButton.addEventListener('click', closeModal);
+
+                // Mobile Menu Listeners
+                if(menuButton && mobileMenu && menuIconOpen && menuIconClose) {
+                     menuButton.addEventListener('click', () => { mobileMenu.classList.toggle('show'); menuIconOpen.classList.toggle('hidden'); menuIconClose.classList.toggle('hidden'); });
+                     const mobileNavLinks = mobileMenu.querySelectorAll('a');
+                     mobileNavLinks.forEach(link => { link.addEventListener('click', () => { if (mobileMenu.classList.contains('show')) { mobileMenu.classList.remove('show'); menuIconOpen.classList.remove('hidden'); menuIconClose.classList.add('hidden'); } }); });
+                } else { console.error("Mobile menu elements not found"); }
+
+                // Footer Year
+                if(currentYearSpan) currentYearSpan.textContent = new Date().getFullYear();
+            }
+        }); // End DOMContentLoaded
+
+    </script>
+</body>
+</html>

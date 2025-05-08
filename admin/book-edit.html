@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Book - Admin | LexoGraphix Plus</title>
+    <script src="https://cdn.tailwindcss.com"></script> <!-- Moved from title tag -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F3F4F6; }
+        .bg-admin-primary { background-color: #002147; } .text-admin-primary { color: #002147; }
+        .border-admin-primary { border-color: #002147; }
+        .bg-admin-secondary { background-color: #C69E63; } .text-admin-secondary { color: #C69E63; }
+        .admin-sidebar { width: 260px; transition: transform 0.3s ease-in-out; }
+        .admin-sidebar-link { display: flex; align-items: center; padding: 0.75rem 1.25rem; color: #D1D5DB; font-weight: 500; border-radius: 0.375rem; transition: background-color 0.2s ease, color 0.2s ease; }
+        .admin-sidebar-link:hover { background-color: #1F2937; color: #FFFFFF; }
+        .admin-sidebar-link.active { background-color: #C69E63; color: #002147; font-weight: 600; }
+        .admin-sidebar-link i { margin-right: 0.75rem; width: 20px; text-align: center; }
+        @media (max-width: 768px) {
+            .admin-sidebar { transform: translateX(-100%); position: fixed; z-index: 40; }
+            .admin-sidebar.show { transform: translateX(0); }
+        }
+        .content-card { background-color: white; border-radius: 0.75rem; padding: 1.5rem; /* p-6 */ box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); }
+        #loadingOverlay, #formLoadingIndicator { position: fixed; inset: 0; background-color: rgba(255, 255, 255, 0.8); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        #formLoadingIndicator { position: absolute; /* Relative to content-card */ }
+
+        /* Form Styles */
+        .form-label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: #374151; }
+        .form-input, .form-textarea, .form-select {
+            width: 100%;
+            padding: 0.625rem 1rem; /* py-2.5 px-4 */
+            border: 1px solid #D1D5DB; /* border-gray-300 */
+            border-radius: 0.5rem; /* rounded-lg */
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            font-size: 0.875rem;
+        }
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            outline: none;
+            border-color: #002147; /* border-primary */
+            box-shadow: 0 0 0 3px rgba(0, 33, 71, 0.3); /* ring-primary/30 */
+        }
+        .form-textarea { min-height: 100px; } /* Smaller height for description */
+        .form-hint { font-size: 0.75rem; color: #6B7280; margin-top: 0.25rem; }
+
+        /* Buttons */
+        .btn { padding: 0.625rem 1.25rem; border-radius: 0.5rem; font-weight: 500; transition: background-color 0.2s ease; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border: none;}
+        .btn i { margin-right: 0.5rem; }
+        .btn-save { background-color: #002147; color: white; }
+        .btn-save:hover { background-color: #103A67; }
+        .btn-save:disabled { background-color: #374F6F; cursor: not-allowed; }
+        .btn-cancel { background-color: #E5E7EB; color: #374151; margin-left: 0.5rem; text-decoration: none;}
+        .btn-cancel:hover { background-color: #D1D5DB; }
+
+        /* Image Preview */
+        .image-preview-container { margin-top: 0.5rem; }
+        .image-preview { max-height: 150px; max-width: 100%; border-radius: 0.375rem; border: 1px solid #eee; object-fit: cover; }
+        .image-preview-container.hidden { display: none; }
+
+        /* Feedback Messages */
+        #formFeedback { display: none; padding: 0.75rem 1rem; margin-top: 1rem; border-radius: 0.5rem; font-weight: 500; font-size: 0.875rem; }
+        .feedback-success { background-color: #D1FAE5; color: #065F46; border: 1px solid #6EE7B7; }
+        .feedback-error { background-color: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <div id="loadingOverlay"><i class="fas fa-spinner fa-spin text-admin-primary text-4xl"></i><p class="ml-3 text-admin-primary">Loading...</p></div>
+
+    <aside id="adminSidebar" class="admin-sidebar bg-admin-primary text-white h-full fixed lg:static flex-shrink-0 flex flex-col space-y-2 p-4 z-30">
+        <div class="text-center py-4 mb-4 border-b border-gray-700">
+            <a href="admin.html" class="text-2xl font-bold text-white">LexoGraphix<span class="text-admin-secondary">Plus</span></a>
+            <p class="text-xs text-gray-400">Admin Panel</p>
+        </div>
+        <nav class="flex-grow">
+            <a href="admin.html" class="admin-sidebar-link" id="nav-dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="blog-management.html" class="admin-sidebar-link" id="nav-blog-management"><i class="fas fa-newspaper"></i> Blog Management</a>
+            <a href="book-directory.html" class="admin-sidebar-link" id="nav-book-directory"><i class="fas fa-book-open"></i> Book Directory</a>
+            <a href="newsletter-signups.html" class="admin-sidebar-link" id="nav-newsletter-signups"><i class="fas fa-envelope-open-text"></i> Newsletter Signups</a>
+            <a href="contact-messages.html" class="admin-sidebar-link" id="nav-contact-messages"><i class="fas fa-inbox"></i> Contact Messages</a>
+            <a href="comments-management.html" class="admin-sidebar-link active" id="nav-comments-management"><i class="fas fa-comments"></i> Comments</a>
+        </nav>
+        <div class="mt-auto border-t border-gray-700 pt-4">
+            <div class="flex items-center mb-3">
+                <img src="https://placehold.co/40x40/C69E63/002147?text=A" alt="Admin User" id="adminUserAvatar" class="w-8 h-8 rounded-full mr-3">
+                <div><p class="text-sm font-medium text-white" id="adminUserName">Loading...</p><p class="text-xs text-gray-400" id="adminUserRole">Administrator</p></div>
+            </div>
+            <a href="#" id="logoutButton" class="admin-sidebar-link !justify-center !bg-red-600 hover:!bg-red-700 !text-white"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </aside>
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden lg:hidden"></div>
+
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <header class="bg-white shadow-md p-4 flex justify-between items-center">
+            <button id="sidebarToggleButton" class="lg:hidden text-admin-primary focus:outline-none"><i class="fas fa-bars text-xl"></i></button>
+            <h1 class="text-xl font-semibold text-admin-primary" id="pageTitle">Add New Book</h1> <div><a href="../index.html" target="_blank" class="text-sm text-admin-primary hover:text-admin-secondary" title="View Live Site">View Site <i class="fas fa-external-link-alt ml-1"></i></a></div>
+        </header>
+
+        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6 md:p-8">
+            <div class="container mx-auto">
+                <form id="bookForm" class="space-y-6">
+                     <div class="content-card relative">
+                        
+
+                        <div id="formFeedback"></div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="title" class="form-label">Book Title <span class="text-red-500">*</span></label>
+                                <input type="text" id="title" name="title" class="form-input" required>
+                            </div>
+                             <div>
+                                <label for="author" class="form-label">Author <span class="text-red-500">*</span></label>
+                                <input type="text" id="author" name="author" class="form-input" required>
+                            </div>
+                        </div>
+
+                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="genre" class="form-label">Genre</label>
+                                <input type="text" id="genre" name="genre" class="form-input" placeholder="e.g., Fiction, Poetry, Young Adult">
+                            </div>
+                             <div>
+                                <label for="isbn" class="form-label">ISBN</label>
+                                <input type="text" id="isbn" name="isbn" class="form-input" placeholder="e.g., 978-...">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="short_description" class="form-label">Short Description</label>
+                            <textarea id="short_description" name="short_description" class="form-textarea" rows="4" placeholder="A brief summary of the book..."></textarea>
+                        </div>
+
+                        <div>
+                            <label for="cover_image" class="form-label">Book Cover Image</label>
+                            <input type="file" id="cover_image" name="cover_image" class="form-input border-dashed" accept="image/png, image/jpeg, image/webp">
+                            <div id="coverImagePreviewContainer" class="image-preview-container hidden">
+                                <p class="form-hint mt-2">Current Cover:</p>
+                                <img id="coverImagePreview" src="#" alt="Current Cover Image" class="image-preview">
+                                <input type="hidden" id="currentCoverImagePath" name="currentCoverImagePath">
+                            </div>
+                            <p class="form-hint">Upload a new image to replace the current one (if any).</p>
+                        </div>
+
+                        <hr class="my-6">
+
+                        <h3 class="text-lg font-medium text-gray-700 mb-3">Sample Pages (Optional - Max 4)</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                             <div>
+                                <label for="page1" class="form-label">Sample Page 1</label>
+                                <input type="file" id="page1" name="page1" class="form-input border-dashed" accept="image/png, image/jpeg, image/webp">
+                                <input type="hidden" id="currentPage1Path" name="currentPage1Path">
+                            </div>
+                             <div>
+                                <label for="page2" class="form-label">Sample Page 2</label>
+                                <input type="file" id="page2" name="page2" class="form-input border-dashed" accept="image/png, image/jpeg, image/webp">
+                                <input type="hidden" id="currentPage2Path" name="currentPage2Path">
+                            </div>
+                             <div>
+                                <label for="page3" class="form-label">Sample Page 3</label>
+                                <input type="file" id="page3" name="page3" class="form-input border-dashed" accept="image/png, image/jpeg, image/webp">
+                                <input type="hidden" id="currentPage3Path" name="currentPage3Path">
+                            </div>
+                             <div>
+                                <label for="page4" class="form-label">Sample Page 4</label>
+                                <input type="file" id="page4" name="page4" class="form-input border-dashed" accept="image/png, image/jpeg, image/webp">
+                                <input type="hidden" id="currentPage4Path" name="currentPage4Path">
+                            </div>
+                        </div>
+                         <p class="form-hint">Upload images for sample pages. Uploading a new file will replace the existing one for that page number.</p>
+
+                        <div class="flex justify-end pt-6 border-t border-gray-200">
+                            <a href="book-directory.html" class="btn btn-cancel">Cancel</a>
+                            <button type="submit" id="saveBookButton" class="btn btn-save">
+                                <i class="fas fa-save"></i>Save Book
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- Supabase Client Initialization ---
+        const SUPABASE_URL = 'https://pegnovymphacsysxdlbr.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBlZ25vdnltcGhhY3N5c3hkbGJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2MjY1MzIsImV4cCI6MjA2MjIwMjUzMn0.d_bhl8FkahwNKlsoG94Wsa68wYDWwT_O7eVOUI40hdo';
+        const BOOK_COVER_BUCKET = 'book-covers'; // Ensure this bucket exists in Supabase Storage
+        // You can use the same bucket for sample pages, or define a new one:
+        // const BOOK_SAMPLE_BUCKET = 'book-samples';
+        let supabaseClient = null;
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const formLoadingIndicator = document.getElementById('formLoadingIndicator'); // Ensure this div exists in your HTML
+
+        try {
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            console.log('Supabase client initialized successfully for book-edit.');
+        } catch (error) {
+            console.error("Error initializing Supabase client:", error);
+            if (loadingOverlay) loadingOverlay.innerHTML = '<p class="text-red-600 font-semibold">Error initializing backend connection.</p>';
+            const saveBtn = document.getElementById('saveBookButton');
+            if(saveBtn) saveBtn.disabled = true;
+        }
+
+        // --- DOM Elements ---
+        const adminSidebar = document.getElementById('adminSidebar');
+        const sidebarToggleButton = document.getElementById('sidebarToggleButton');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const logoutButton = document.getElementById('logoutButton');
+        const pageTitleElement = document.getElementById('pageTitle');
+        const adminUserNameElement = document.getElementById('adminUserName');
+        const adminUserAvatar = document.getElementById('adminUserAvatar');
+        const bookForm = document.getElementById('bookForm');
+        const titleInput = document.getElementById('title');
+        const authorInput = document.getElementById('author');
+        const genreInput = document.getElementById('genre');
+        const isbnInput = document.getElementById('isbn');
+        const descriptionTextarea = document.getElementById('short_description');
+        const coverImageInput = document.getElementById('cover_image');
+        const coverImagePreviewContainer = document.getElementById('coverImagePreviewContainer');
+        const coverImagePreview = document.getElementById('coverImagePreview');
+        const currentCoverImagePathInput = document.getElementById('currentCoverImagePath');
+        const saveBookButton = document.getElementById('saveBookButton');
+        const formFeedback = document.getElementById('formFeedback');
+
+        // Sample page inputs and current path holders
+        const pageInputs = [
+            { input: document.getElementById('page1'), currentPathInput: document.getElementById('currentPage1Path'), previewId: null, dbField: 'page1_url' }, // Add previewId if you implement previews for sample pages
+            { input: document.getElementById('page2'), currentPathInput: document.getElementById('currentPage2Path'), previewId: null, dbField: 'page2_url' },
+            { input: document.getElementById('page3'), currentPathInput: document.getElementById('currentPage3Path'), previewId: null, dbField: 'page3_url' },
+            { input: document.getElementById('page4'), currentPathInput: document.getElementById('currentPage4Path'), previewId: null, dbField: 'page4_url' }
+        ];
+
+        let editingBookId = null;
+
+        // --- Helper Functions ---
+        function setActiveLink(navId, title) {
+            document.querySelectorAll('.admin-sidebar-link').forEach(link => link.classList.remove('active'));
+            const activeLink = document.getElementById(navId);
+            if (activeLink) activeLink.classList.add('active');
+            document.title = title + " - Admin | LexoGraphix Plus";
+        }
+
+        function displayFeedback(message, type) {
+            if (!formFeedback) return;
+            formFeedback.textContent = message;
+            formFeedback.className = '';
+            formFeedback.classList.add('p-3', 'rounded-md', 'my-4', type === 'success' ? 'feedback-success' : 'feedback-error');
+            formFeedback.style.display = 'block';
+            formFeedback.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (type === 'success') {
+                setTimeout(() => {
+                    if (formFeedback) formFeedback.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        function escapeHtml(unsafe) { // Basic escape, consider a library for more robust needs
+            if (unsafe === null || typeof unsafe === 'undefined') return '';
+            return unsafe.toString()
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
+
+
+        // --- Event Listeners ---
+        if (sidebarToggleButton) sidebarToggleButton.addEventListener('click', () => { adminSidebar.classList.toggle('show'); sidebarOverlay.classList.toggle('hidden'); });
+        if (sidebarOverlay) sidebarOverlay.addEventListener('click', () => { adminSidebar.classList.remove('show'); sidebarOverlay.classList.add('hidden'); });
+
+        document.querySelectorAll('.admin-sidebar-link').forEach(link => {
+            link.addEventListener('click', function(event) {
+                if (this.id === 'logoutButton') return;
+                if (window.innerWidth < 1024 && adminSidebar && adminSidebar.classList.contains('show')) {
+                    adminSidebar.classList.remove('show');
+                    if (sidebarOverlay) sidebarOverlay.classList.add('hidden');
+                }
+            });
+        });
+
+        if (logoutButton) {
+            logoutButton.addEventListener('click', async (event) => {
+                event.preventDefault();
+                if (!supabaseClient) { alert('Admin panel backend is not configured.'); return; }
+                try {
+                    logoutButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Logging out...';
+                    logoutButton.disabled = true;
+                    const { error } = await supabaseClient.auth.signOut();
+                    if (error) throw error;
+                    window.location.href = 'login.html';
+                } catch (error) {
+                    console.error("Logout Error:", error);
+                    alert('Logout failed: ' + (error.message || 'Unknown error'));
+                    logoutButton.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+                    logoutButton.disabled = false;
+                }
+            });
+        }
+
+        if (bookForm) {
+            bookForm.addEventListener('submit', handleFormSubmit);
+        }
+
+        if (coverImageInput && coverImagePreview && coverImagePreviewContainer && currentCoverImagePathInput) {
+            coverImageInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        coverImagePreview.src = e.target.result;
+                        coverImagePreviewContainer.classList.remove('hidden');
+                    }
+                    reader.readAsDataURL(file);
+                } else {
+                     if (currentCoverImagePathInput.value && supabaseClient) {
+                         const { data: urlData } = supabaseClient.storage.from(BOOK_COVER_BUCKET).getPublicUrl(currentCoverImagePathInput.value);
+                         if (urlData && urlData.publicUrl) {
+                             coverImagePreview.src = urlData.publicUrl;
+                             coverImagePreviewContainer.classList.remove('hidden');
+                         } else {
+                             coverImagePreviewContainer.classList.add('hidden');
+                         }
+                     } else {
+                         coverImagePreviewContainer.classList.add('hidden');
+                     }
+                }
+            });
+        }
+        // Add similar listeners for sample page previews if you implement them
+
+        // --- Core Functions ---
+        async function checkAuthStateAndLoadData() {
+            if (!supabaseClient) {
+                if (adminUserNameElement) adminUserNameElement.textContent = "Dev User (No Auth)";
+                if (loadingOverlay) loadingOverlay.style.display = 'none';
+                setActiveLink('nav-book-directory', 'Book Editor');
+                displayFeedback("Backend not configured. Cannot load or save data.", "error");
+                if(formLoadingIndicator) formLoadingIndicator.style.display = 'none';
+                if(saveBookButton) saveBookButton.disabled = true;
+                return;
+            }
+
+            try {
+                const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+                if (sessionError) throw sessionError;
+                if (!session) { window.location.href = 'login.html'; return; }
+
+                console.log('User session active for book editing.');
+                const user = session.user;
+                if (user && adminUserNameElement && adminUserAvatar) {
+                    if (user.email) {
+                        adminUserNameElement.textContent = user.email.split('@')[0];
+                        const initial = user.email.charAt(0).toUpperCase();
+                        adminUserAvatar.src = `https://placehold.co/40x40/C69E63/002147?text=${initial}`;
+                    } else {
+                        adminUserNameElement.textContent = 'Admin';
+                        adminUserAvatar.src = 'https://placehold.co/40x40/C69E63/002147?text=A';
+                    }
+                }
+
+                const urlParams = new URLSearchParams(window.location.search);
+                editingBookId = urlParams.get('id');
+                let pageSpecificTitle = 'Book Editor';
+
+                if (editingBookId) {
+                    if(pageTitleElement) pageTitleElement.textContent = 'Edit Book';
+                    await loadBookDataForEdit(editingBookId);
+                } else {
+                    if(pageTitleElement) pageTitleElement.textContent = 'Add New Book';
+                    if(formLoadingIndicator) formLoadingIndicator.style.display = 'none';
+                }
+                setActiveLink('nav-book-directory', pageSpecificTitle);
+
+            } catch (error) {
+                 console.error("Auth check or initial load failed (book-edit):", error);
+                 if (!window.location.pathname.endsWith('login.html')) {
+                    window.location.href = 'login.html';
+                 } else {
+                    displayFeedback("Critical error during authentication. Please check console.", "error");
+                 }
+            } finally {
+                 if (loadingOverlay) loadingOverlay.style.display = 'none';
+            }
+        }
+
+        async function loadBookDataForEdit(bookId) {
+            if (!supabaseClient) return;
+            console.log("Loading book data for ID:", bookId);
+            if(formLoadingIndicator) formLoadingIndicator.style.display = 'flex';
+
+            try {
+                const { data: book, error } = await supabaseClient
+                    .from('books')
+                    .select('*')
+                    .eq('id', bookId)
+                    .single();
+
+                if (error) {
+                     if (error.code === 'PGRST116') {
+                        console.error("Book not found for ID:", bookId);
+                        displayFeedback("Book not found. Cannot edit.", "error");
+                     } else { throw error; }
+                     return;
+                }
+
+                if (book) {
+                    console.log("Book data fetched:", book);
+                    if(titleInput) titleInput.value = book.title || '';
+                    if(authorInput) authorInput.value = book.author || '';
+                    if(genreInput) genreInput.value = book.genre || '';
+                    if(isbnInput) isbnInput.value = book.isbn || '';
+                    if(descriptionTextarea) descriptionTextarea.value = book.short_description || '';
+
+                    if (book.cover_url && coverImagePreview && coverImagePreviewContainer && currentCoverImagePathInput && BOOK_COVER_BUCKET) {
+                         const { data: urlData } = supabaseClient.storage.from(BOOK_COVER_BUCKET).getPublicUrl(book.cover_url);
+                         if (urlData && urlData.publicUrl) {
+                            coverImagePreview.src = urlData.publicUrl;
+                            coverImagePreviewContainer.classList.remove('hidden');
+                            currentCoverImagePathInput.value = book.cover_url;
+                         } else {
+                             console.warn('Could not get public URL for cover image path: ' + book.cover_url);
+                             coverImagePreviewContainer.classList.add('hidden');
+                             currentCoverImagePathInput.value = '';
+                         }
+                    } else {
+                        if(coverImagePreviewContainer) coverImagePreviewContainer.classList.add('hidden');
+                        if(currentCoverImagePathInput) currentCoverImagePathInput.value = '';
+                    }
+
+                    // Populate current paths for sample pages
+                    pageInputs.forEach(pInput => {
+                        if (pInput.currentPathInput && book[pInput.dbField]) {
+                            pInput.currentPathInput.value = book[pInput.dbField];
+                            // Add logic here to display existing sample page image previews if you add them
+                        }
+                    });
+                } else {
+                    displayFeedback("Book not found.", "error");
+                    if (saveBookButton) saveBookButton.disabled = true;
+                }
+            } catch (error) {
+                console.error("Error loading book data:", error);
+                displayFeedback("Error loading book data: " + (error.message || 'Unknown error'), "error");
+            } finally {
+                 if(formLoadingIndicator) formLoadingIndicator.style.display = 'none';
+            }
+        }
+
+        async function uploadGameFile(fileInputElement, currentPathValue, bucketName, prefix = 'books/') {
+            if (!supabaseClient) throw new Error("Supabase client not initialized.");
+            if (!bucketName) throw new Error("Bucket name is not configured correctly.");
+
+            const file = fileInputElement.files[0];
+            let newFilePath = currentPathValue || null; // Keep current path if no new file
+            let oldPathToDelete = null;
+
+            if (file) {
+                console.log(`New file selected for ${fileInputElement.id}, attempting upload to bucket: ${bucketName}`);
+                const fileExt = file.name.split('.').pop();
+                const randomString = Math.random().toString(36).substring(2);
+                const fullFileName = `${prefix}${Date.now()}-${randomString}.${fileExt}`;
+
+                const { data: uploadData, error: uploadError } = await supabaseClient.storage
+                    .from(bucketName)
+                    .upload(fullFileName, file, { cacheControl: '3600', upsert: false });
+
+                if (uploadError) {
+                    console.error(`Upload error for ${fileInputElement.id} to ${bucketName}:`, uploadError);
+                    throw new Error(`Upload failed for ${fileInputElement.id}: ${uploadError.message}`);
+                }
+
+                console.log(`Upload successful for ${fileInputElement.id}:`, uploadData);
+                if (currentPathValue && currentPathValue !== uploadData.path) { // If there was an old, different path
+                    oldPathToDelete = currentPathValue;
+                }
+                newFilePath = uploadData.path; // This is the path within the bucket
+            }
+            return { filePath: newFilePath, oldPathToDelete };
+        }
+
+
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+            if (!supabaseClient) {
+                displayFeedback("Backend not configured. Cannot save data.", "error");
+                return;
+            }
+            if (saveBookButton) {
+                saveBookButton.disabled = true;
+                saveBookButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+            }
+            if(formFeedback) formFeedback.style.display = 'none';
+            if(formLoadingIndicator) formLoadingIndicator.style.display = 'flex';
+
+            let bookData = {
+                title: titleInput.value.trim(),
+                author: authorInput.value.trim(),
+                genre: genreInput.value.trim() || null,
+                isbn: isbnInput.value.trim() || null,
+                short_description: descriptionTextarea.value.trim() || null,
+                updated_at: new Date().toISOString()
+            };
+
+            if (!bookData.title || !bookData.author) {
+                displayFeedback("Title and Author are required.", "error");
+                if (saveBookButton) { saveBookButton.disabled = false; saveBookButton.innerHTML = '<i class="fas fa-save"></i>Save Book'; }
+                if(formLoadingIndicator) formLoadingIndicator.style.display = 'none';
+                return;
+            }
+
+            const filesToDeleteAfterSuccess = [];
+
+            try {
+                // 1. Handle Cover Image Upload
+                const coverUploadResult = await uploadGameFile(coverImageInput, currentCoverImagePathInput.value, BOOK_COVER_BUCKET, 'covers/');
+                bookData.cover_url = coverUploadResult.filePath;
+                if (coverUploadResult.oldPathToDelete) {
+                    filesToDeleteAfterSuccess.push({ path: coverUploadResult.oldPathToDelete, bucket: BOOK_COVER_BUCKET });
+                }
+
+                // 2. Handle Sample Page Uploads
+                for (const pInput of pageInputs) {
+                    if (pInput.input.files[0]) { // Only upload if a new file is selected
+                        const sampleUploadResult = await uploadGameFile(pInput.input, pInput.currentPathInput.value, BOOK_COVER_BUCKET, 'samples/'); // Using same bucket, different prefix
+                        bookData[pInput.dbField] = sampleUploadResult.filePath;
+                        if (sampleUploadResult.oldPathToDelete) {
+                            filesToDeleteAfterSuccess.push({ path: sampleUploadResult.oldPathToDelete, bucket: BOOK_COVER_BUCKET });
+                        }
+                    } else {
+                        // If no new file, keep the existing path (already in currentPathInput.value and loaded into bookData if editing)
+                        bookData[pInput.dbField] = pInput.currentPathInput.value || null;
+                    }
+                }
+
+                // 3. Upsert (Insert or Update) data in Supabase 'books' table
+                let resultData, dbError;
+                if (editingBookId) { // Update existing book
+                    console.log("Updating book:", editingBookId, bookData);
+                    const { data, error } = await supabaseClient.from('books').update(bookData).eq('id', editingBookId).select().single();
+                    resultData = data; dbError = error;
+                } else { // Insert new book
+                    bookData.created_at = new Date().toISOString();
+                    // bookData.user_id = supabaseClient.auth.user()?.id; // Optional: associate with logged-in user
+                    console.log("Inserting new book:", bookData);
+                    const { data, error } = await supabaseClient.from('books').insert(bookData).select().single();
+                    resultData = data; dbError = error;
+                }
+
+                if (dbError) {
+                    // If DB operation fails, and new files were uploaded, attempt to delete them to avoid orphaned files
+                    const newUploadedPaths = [];
+                    if (coverUploadResult.filePath && coverUploadResult.filePath !== currentCoverImagePathInput.value) newUploadedPaths.push({path: coverUploadResult.filePath, bucket: BOOK_COVER_BUCKET });
+                    for (const pInput of pageInputs) {
+                        const dbFieldName = pInput.dbField;
+                        if (bookData[dbFieldName] && bookData[dbFieldName] !== pInput.currentPathInput.value) { // Check if a new path was set
+                           newUploadedPaths.push({path: bookData[dbFieldName], bucket: BOOK_COVER_BUCKET});
+                        }
+                    }
+                    if (newUploadedPaths.length > 0) {
+                        console.warn("DB operation failed. Attempting to delete newly uploaded files:", newUploadedPaths);
+                        for (const fileToDelete of newUploadedPaths) {
+                            await supabaseClient.storage.from(fileToDelete.bucket).remove([fileToDelete.path]);
+                        }
+                    }
+                    throw dbError;
+                }
+
+                console.log("Book data saved successfully:", resultData);
+
+                // 4. Delete old files from storage if they were replaced and DB op was successful
+                if (filesToDeleteAfterSuccess.length > 0) {
+                    console.log("Attempting to delete old files:", filesToDeleteAfterSuccess);
+                    for (const fileToDelete of filesToDeleteAfterSuccess) {
+                        const { error: deleteError } = await supabaseClient.storage.from(fileToDelete.bucket).remove([fileToDelete.path]);
+                        if (deleteError) console.error(`Error deleting old file ${fileToDelete.path} from ${fileToDelete.bucket}:`, deleteError); // Log but continue
+                    }
+                }
+
+                displayFeedback(editingBookId ? "Book updated successfully!" : "Book added successfully!", "success");
+
+                if (!editingBookId && resultData) { // If new book, update URL to edit mode and populate current paths
+                    editingBookId = resultData.id;
+                    window.history.replaceState({}, '', `book-edit.html?id=${editingBookId}`);
+                    if(pageTitleElement) pageTitleElement.textContent = 'Edit Book';
+                }
+                // Update currentPath hidden inputs with the newly saved paths
+                currentCoverImagePathInput.value = bookData.cover_url || '';
+                pageInputs.forEach(pInput => {
+                    pInput.currentPathInput.value = bookData[pInput.dbField] || '';
+                });
+                // Clear file inputs
+                coverImageInput.value = null;
+                pageInputs.forEach(pInput => pInput.input.value = null);
+
+
+            } catch (error) {
+                console.error("Error saving book:", error);
+                displayFeedback("Error saving book: " + (error.message || "Unknown error"), "error");
+            } finally {
+                if (saveBookButton) {
+                    saveBookButton.disabled = false;
+                    saveBookButton.innerHTML = '<i class="fas fa-save"></i>Save Book';
+                }
+                if(formLoadingIndicator) formLoadingIndicator.style.display = 'none';
+            }
+        }
+
+
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuthStateAndLoadData();
+            // Ensure formLoadingIndicator is defined in HTML if used:
+            // e.g., <div id="formLoadingIndicator" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center hidden"><i class="fas fa-spinner fa-spin text-admin-primary text-3xl"></i></div>
+            // inside the .content-card div
+        });
+
+    </script>
+
+</body>
+</html>

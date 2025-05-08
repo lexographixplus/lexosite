@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Messages - Admin | LexoGraphix Plus</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F3F4F6; }
+        .bg-admin-primary { background-color: #002147; } .text-admin-primary { color: #002147; }
+        .border-admin-primary { border-color: #002147; }
+        .bg-admin-secondary { background-color: #C69E63; } .text-admin-secondary { color: #C69E63; }
+        .admin-sidebar { width: 260px; transition: transform 0.3s ease-in-out; }
+        .admin-sidebar-link { display: flex; align-items: center; padding: 0.75rem 1.25rem; color: #D1D5DB; font-weight: 500; border-radius: 0.375rem; transition: background-color 0.2s ease, color 0.2s ease; }
+        .admin-sidebar-link:hover { background-color: #1F2937; color: #FFFFFF; }
+        .admin-sidebar-link.active { background-color: #C69E63; color: #002147; font-weight: 600; }
+        .admin-sidebar-link i { margin-right: 0.75rem; width: 20px; text-align: center; }
+        @media (max-width: 768px) { 
+            .admin-sidebar { transform: translateX(-100%); position: fixed; z-index: 40; }
+            .admin-sidebar.show { transform: translateX(0); }
+        }
+        .content-card { background-color: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); }
+        #loadingOverlay, #tableLoadingIndicator { position: fixed; inset: 0; background-color: rgba(255, 255, 255, 0.8); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        #tableLoadingIndicator { position: absolute; /* Relative to content-card */ }
+        .table-wrapper { overflow-x: auto; position: relative; min-height: 150px; }
+        .admin-table { width: 100%; border-collapse: collapse; }
+        .admin-table th, .admin-table td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid #E5E7EB; }
+        .admin-table th { background-color: #F9FAFB; font-weight: 600; color: #374151; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .admin-table td { font-size: 0.875rem; color: #4B5563; vertical-align: middle; } /* Align middle */
+        .admin-table tbody tr:hover { background-color: #F9FAFB; }
+        .btn-action { background-color: #002147; color: white; padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 500; transition: background-color 0.2s ease; font-size: 0.875rem;}
+        .btn-action:hover { background-color: #103A67; }
+        .btn-action:disabled { background-color: #374F6F; cursor: not-allowed; }
+        .btn-action i { margin-right: 0.5rem; }
+        .filter-select { padding: 0.5rem 0.75rem; border: 1px solid #D1D5DB; border-radius: 0.375rem; font-size: 0.875rem; }
+        .message-preview { 
+            max-width: 300px; /* Increased width */
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            cursor: pointer; /* Indicate it's clickable */
+            display: inline-block; /* Needed for ellipsis */
+        }
+        .status-toggle { cursor: pointer; } 
+        .status-toggle input:disabled { cursor: not-allowed; }
+        .form-checkbox:checked { background-color: #C69E63; border-color: #C69E63; }
+        .form-checkbox:focus { box-shadow: 0 0 0 3px rgba(198, 158, 99, 0.3); border-color: #C69E63; }
+        /* Modal Styles */
+        .modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); }
+        .modal-content { background-color: #fefefe; margin: 10% auto; padding: 25px; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: 0.5rem; position: relative; }
+        .modal-close { color: #aaa; position: absolute; top: 10px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .modal-close:hover, .modal-close:focus { color: black; text-decoration: none; }
+        .modal h3 { margin-top: 0; color: #002147; }
+        .modal p { margin-bottom: 0.5rem; }
+        .modal pre { background-color: #f0f0f0; padding: 1rem; border-radius: 0.375rem; white-space: pre-wrap; word-wrap: break-word; max-height: 300px; overflow-y: auto; font-size: 0.9rem; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <div id="loadingOverlay"><i class="fas fa-spinner fa-spin text-admin-primary text-4xl"></i><p class="ml-3 text-admin-primary">Loading...</p></div>
+
+    <aside id="adminSidebar" class="admin-sidebar bg-admin-primary text-white h-full fixed lg:static flex-shrink-0 flex flex-col space-y-2 p-4 z-30">
+        <div class="text-center py-4 mb-4 border-b border-gray-700">
+            <a href="admin.html" class="text-2xl font-bold text-white">LexoGraphix<span class="text-admin-secondary">Plus</span></a>
+            <p class="text-xs text-gray-400">Admin Panel</p>
+        </div>
+        <nav class="flex-grow">
+            <a href="admin.html" class="admin-sidebar-link" id="nav-dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="blog-management.html" class="admin-sidebar-link" id="nav-blog-management"><i class="fas fa-newspaper"></i> Blog Management</a>
+            <a href="book-directory.html" class="admin-sidebar-link" id="nav-book-directory"><i class="fas fa-book-open"></i> Book Directory</a>
+            <a href="newsletter-signups.html" class="admin-sidebar-link" id="nav-newsletter-signups"><i class="fas fa-envelope-open-text"></i> Newsletter Signups</a>
+            <a href="contact-messages.html" class="admin-sidebar-link" id="nav-contact-messages"><i class="fas fa-inbox"></i> Contact Messages</a>
+            <a href="comments-management.html" class="admin-sidebar-link active" id="nav-comments-management"><i class="fas fa-comments"></i> Comments</a>
+        </nav>
+        <div class="mt-auto border-t border-gray-700 pt-4">
+            <div class="flex items-center mb-3">
+                <img src="https://placehold.co/40x40/C69E63/002147?text=A" alt="Admin User" id="adminUserAvatar" class="w-8 h-8 rounded-full mr-3">
+                <div><p class="text-sm font-medium text-white" id="adminUserName">Loading...</p><p class="text-xs text-gray-400" id="adminUserRole">Administrator</p></div>
+            </div>
+            <a href="#" id="logoutButton" class="admin-sidebar-link !justify-center !bg-red-600 hover:!bg-red-700 !text-white"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </aside>
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden lg:hidden"></div>
+
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <header class="bg-white shadow-md p-4 flex justify-between items-center">
+            <button id="sidebarToggleButton" class="lg:hidden text-admin-primary focus:outline-none"><i class="fas fa-bars text-xl"></i></button>
+            <h1 class="text-xl font-semibold text-admin-primary" id="pageTitle">Contact Messages</h1>
+            <div><a href="../index.html" target="_blank" class="text-sm text-admin-primary hover:text-admin-secondary" title="View Live Site">View Site <i class="fas fa-external-link-alt ml-1"></i></a></div>
+        </header>
+
+        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6 md:p-8">
+            <div class="container mx-auto">
+                 <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                    <h2 class="text-2xl font-semibold text-admin-primary">Received Messages</h2>
+                    <div class="flex items-center gap-4">
+                        <label for="filterStatus" class="text-sm font-medium text-gray-700">Filter:</label>
+                        <select id="filterStatus" class="filter-select">
+                            <option value="all">All Statuses</option>
+                            <option value="not_replied">Not Replied</option>
+                            <option value="replied">Replied</option>
+                        </select>
+                        <button id="exportMessagesCsvButton" class="btn-action" disabled>
+                            <i class="fas fa-file-csv"></i>Export CSV
+                        </button>
+                    </div>
+                </div>
+
+                <div class="content-card table-wrapper">
+
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Message Preview</th>
+                                <th>Service Inquiry</th>
+                                <th>Received</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="messagesTableBody">
+                            </tbody>
+                    </table>
+                </div>
+                <div id="no-messages-message" class="hidden text-center text-gray-500 py-10">No contact messages found.</div>
+                <div id="error-loading-message" class="hidden text-center text-red-600 py-10">Error loading messages. Please try again.</div>
+            </div>
+        </main>
+    </div>
+
+    <div id="messageModal" class="modal">
+      <div class="modal-content">
+        <span class="modal-close" onclick="closeModal()">&times;</span>
+        <h3 id="modalSubject">Message Details</h3>
+        <p><strong>From:</strong> <span id="modalFromName"></span> (<a id="modalFromEmail" href="#" class="text-admin-secondary hover:underline"></a>)</p>
+        <p><strong>Received:</strong> <span id="modalReceivedDate"></span></p>
+        <p><strong>Service Inquiry:</strong> <span id="modalServiceInquiry"></span></p>
+        <p><strong>Message:</strong></p>
+        <pre id="modalMessageBody"></pre>
+        <div class="mt-4">
+             <label class="inline-flex items-center status-toggle">
+                <input type="checkbox" id="modalRepliedStatus" class="form-checkbox h-5 w-5 text-admin-secondary rounded border-gray-300 focus:ring-admin-secondary">
+                <span class="ml-2 text-sm text-gray-600">Mark as Replied</span>
+            </label>
+        </div>
+      </div>
+    </div>
+
+
+    <script>
+        // --- Supabase Client Initialization ---
+        const SUPABASE_URL = 'https://pegnovymphacsysxdlbr.supabase.co'; // <-- Replace!
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBlZ25vdnltcGhhY3N5c3hkbGJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2MjY1MzIsImV4cCI6MjA2MjIwMjUzMn0.d_bhl8FkahwNKlsoG94Wsa68wYDWwT_O7eVOUI40hdo'; // <-- Replace!
+        let supabaseClient = null; 
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        if (typeof supabase !== 'undefined' && supabase.createClient && SUPABASE_URL !== 'YOUR_SUPABASE_URL' && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY') {
+           try {
+               supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+               console.log('Supabase client initialized successfully.');
+           } catch (error) {
+               console.error("Error initializing Supabase client:", error);
+               if (loadingOverlay) loadingOverlay.innerHTML = '<p class="text-red-600 font-semibold">Error initializing backend connection.</p>';
+           }
+        } else {
+           console.warn('Supabase library object "supabase" not found or credentials are still placeholders. Admin features will be limited.');
+           if (loadingOverlay) loadingOverlay.innerHTML = '<p class="text-red-600 font-semibold">Admin panel backend is not configured.</p>';
+        }
+
+        // Common Admin Script Elements
+        const adminSidebar = document.getElementById('adminSidebar');
+        const sidebarToggleButton = document.getElementById('sidebarToggleButton');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const logoutButton = document.getElementById('logoutButton');
+        const pageTitleElement = document.getElementById('pageTitle');
+        const adminUserNameElement = document.getElementById('adminUserName');
+        const adminUserAvatar = document.getElementById('adminUserAvatar');
+        const tableBody = document.getElementById('messagesTableBody');
+        const noMessagesMessage = document.getElementById('no-messages-message');
+        const errorLoadingMessage = document.getElementById('error-loading-message');
+        const tableLoadingIndicator = document.getElementById('tableLoadingIndicator');
+        const exportMessagesCsvButton = document.getElementById('exportMessagesCsvButton');
+        const filterStatusSelect = document.getElementById('filterStatus');
+        const messageModal = document.getElementById('messageModal');
+        let allMessagesData = []; 
+        let currentMessageId = null; 
+
+        // --- Helper Functions ---
+        function setActiveLink(navId, title) {
+            document.querySelectorAll('.admin-sidebar-link').forEach(link => link.classList.remove('active'));
+            const activeLink = document.getElementById(navId);
+            if (activeLink) activeLink.classList.add('active');
+            if (pageTitleElement) pageTitleElement.textContent = title;
+            document.title = title + " - Admin | LexoGraphix Plus";
+        }
+
+        function escapeHtml(unsafe) {
+            if (unsafe === null || typeof unsafe === 'undefined') return '';
+            return unsafe.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        // --- Modal Functions ---
+        function openModal(messageId) {
+            const message = allMessagesData.find(m => m.id === messageId);
+            if (!message || !messageModal) return;
+
+            currentMessageId = messageId; // Store the ID
+
+            document.getElementById('modalFromName').textContent = escapeHtml(message.name);
+            const emailLink = document.getElementById('modalFromEmail');
+            emailLink.textContent = escapeHtml(message.email);
+            emailLink.href = 'mailto:' + encodeURIComponent(message.email);
+            document.getElementById('modalReceivedDate').textContent = new Date(message.submitted_at).toLocaleString('en-GB');
+            document.getElementById('modalServiceInquiry').textContent = escapeHtml(message.service_inquiry || 'N/A');
+            document.getElementById('modalMessageBody').textContent = message.message; // Display raw message in <pre>
+            
+            const repliedCheckbox = document.getElementById('modalRepliedStatus');
+            repliedCheckbox.checked = message.replied;
+            // Add event listener to update status when modal checkbox changes
+            repliedCheckbox.onchange = () => toggleRepliedStatus(currentMessageId, repliedCheckbox.checked, repliedCheckbox, true); // Pass true to update table too
+
+            messageModal.style.display = "block";
+        }
+
+        function closeModal() {
+            if (messageModal) {
+                messageModal.style.display = "none";
+                currentMessageId = null; // Clear the ID
+                // Remove the specific onchange listener to prevent memory leaks
+                const repliedCheckbox = document.getElementById('modalRepliedStatus');
+                if (repliedCheckbox) {
+                    repliedCheckbox.onchange = null; 
+                }
+            }
+        }
+        // Close modal if user clicks outside of it
+        window.onclick = function(event) {
+          if (event.target == messageModal) {
+            closeModal();
+          }
+        }; // Added semicolon
+
+        // --- Event Listeners ---
+        if (sidebarToggleButton) sidebarToggleButton.addEventListener('click', () => { adminSidebar.classList.toggle('show'); sidebarOverlay.classList.toggle('hidden'); });
+        if (sidebarOverlay) sidebarOverlay.addEventListener('click', () => { adminSidebar.classList.remove('show'); sidebarOverlay.classList.add('hidden'); });
+
+        document.querySelectorAll('.admin-sidebar-link').forEach(link => {
+            link.addEventListener('click', function(event) {
+                if (this.id === 'logoutButton') return;
+                if (window.innerWidth < 1024 && adminSidebar.classList.contains('show')) {
+                    adminSidebar.classList.remove('show');
+                    sidebarOverlay.classList.add('hidden');
+                }
+            });
+        });
+        
+        if (logoutButton) {
+            logoutButton.addEventListener('click', async (event) => {
+                event.preventDefault();
+                if (!supabaseClient) { alert('Admin panel backend is not configured.'); return; }
+                try {
+                    logoutButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Logging out...';
+                    logoutButton.disabled = true;
+                    const { error } = await supabaseClient.auth.signOut(); 
+                    if (error) throw error;
+                    window.location.href = 'login.html'; 
+                } catch (error) {
+                    console.error("Logout Error:", error);
+                    alert('Logout failed: ' + error.message);
+                    logoutButton.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+                    logoutButton.disabled = false;
+                }
+            });
+        }
+
+        if (exportMessagesCsvButton) {
+            exportMessagesCsvButton.addEventListener('click', () => {
+                if (!allMessagesData || allMessagesData.length === 0) {
+                    alert("No data available to export.");
+                    return;
+                }
+                console.log('Exporting data to CSV...');
+                const headers = ['Name', 'Email', 'Message', 'ServiceInquiry', 'ReceivedDate', 'Replied'];
+                try {
+                    const csvContent = [
+                        headers.join(','), 
+                        ...allMessagesData.map(row => [
+                            `"${(row.name || '').replace(/"/g, '""')}"`, 
+                            `"${(row.email || '').replace(/"/g, '""')}"`,
+                            `"${(row.message || '').replace(/\r\n|\n|\r/g, ' ').replace(/"/g, '""')}"`, // Replace newlines and escape quotes
+                            `"${(row.service_inquiry || 'N/A').replace(/"/g, '""')}"`,
+                            row.submitted_at ? new Date(row.submitted_at).toISOString() : '', 
+                            row.replied ? 'Yes' : 'No'
+                        ].join(','))
+                    ].join('\n');
+
+                    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' }); // Add BOM for Excel compatibility
+                    const link = document.createElement("a");
+                    if (link.download !== undefined) { 
+                        const url = URL.createObjectURL(blob);
+                        link.setAttribute("href", url);
+                        link.setAttribute("download", "contact_messages.csv");
+                        link.style.visibility = 'hidden';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url); 
+                    } else {
+                         alert("CSV export not supported by your browser.");
+                    }
+                } catch (error) {
+                    console.error("Error generating CSV:", error);
+                    alert("An error occurred while generating the CSV file.");
+                }
+            });
+        }
+
+        if (filterStatusSelect) {
+            filterStatusSelect.addEventListener('change', loadMessages); // Reload messages when filter changes
+        }
+
+        // --- Core Functions ---
+        async function checkAuthStateAndLoadUser() {
+            if (!supabaseClient) { 
+                if (adminUserNameElement) adminUserNameElement.textContent = "Dev User (No Auth)";
+                if (loadingOverlay) loadingOverlay.style.display = 'none'; 
+                setActiveLink('nav-contact-messages', 'Contact Messages');
+                if(errorLoadingMessage) {
+                    errorLoadingMessage.textContent = "Backend not configured. Cannot load data.";
+                    errorLoadingMessage.classList.remove('hidden');
+                }
+                if(tableLoadingIndicator) tableLoadingIndicator.classList.add('hidden');
+                return; 
+            }
+            
+            try {
+                const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession(); 
+                if (sessionError) throw sessionError; 
+                if (!session) { window.location.href = 'login.html'; return; }
+
+                console.log('User session active.');
+                const user = session.user;
+                if (user && adminUserNameElement && adminUserAvatar) { 
+                    if (user.email) {
+                        adminUserNameElement.textContent = user.email.split('@')[0]; 
+                        const initial = user.email.charAt(0).toUpperCase();
+                        const avatarUrl = 'https://placehold.co/40x40/C69E63/002147?text=' + initial; 
+                        adminUserAvatar.src = avatarUrl;
+                    } else {
+                        adminUserNameElement.textContent = 'Admin';
+                        adminUserAvatar.src = 'https://placehold.co/40x40/C69E63/002147?text=A'; 
+                    }
+                } else {
+                     console.warn("Could not find admin user display elements or user object.");
+                     if(adminUserNameElement) adminUserNameElement.textContent = 'Admin';
+                }
+                
+                setActiveLink('nav-contact-messages', 'Contact Messages'); 
+                await loadMessages(); // Load messages for the current filter
+
+            } catch (error) {
+                 console.error("Auth check or initial load failed:", error);
+                 window.location.href = 'login.html';
+            } finally {
+                 if (loadingOverlay) loadingOverlay.style.display = 'none'; 
+            }
+        } // End of checkAuthStateAndLoadUser
+
+        async function loadMessages() {
+            if (!supabaseClient) { 
+                console.error("Cannot load messages: Supabase client not available.");
+                if(errorLoadingMessage) errorLoadingMessage.classList.remove('hidden'); 
+                return; 
+            }
+
+            const filterValue = filterStatusSelect ? filterStatusSelect.value : 'all';
+            console.log(`Fetching messages with filter: ${filterValue}`);
+
+            if(tableLoadingIndicator) tableLoadingIndicator.classList.remove('hidden');
+            if(noMessagesMessage) noMessagesMessage.classList.add('hidden');
+            if(errorLoadingMessage) errorLoadingMessage.classList.add('hidden');
+            if(tableBody) tableBody.innerHTML = ''; 
+            if(exportMessagesCsvButton) exportMessagesCsvButton.disabled = true;
+            allMessagesData = []; 
+
+            try {
+                let query = supabaseClient
+                    .from('contact_messages')
+                    .select('*')
+                    .order('submitted_at', { ascending: false });
+
+                // Apply filter based on dropdown selection
+                if (filterValue === 'replied') {
+                    query = query.eq('replied', true);
+                } else if (filterValue === 'not_replied') {
+                    query = query.eq('replied', false);
+                } // 'all' doesn't need an additional filter
+
+                const { data: messages, error } = await query;
+
+                if (error) throw error; 
+                
+                console.log("Messages fetched:", messages);
+                allMessagesData = messages || []; 
+
+                if (tableBody && messages && messages.length > 0) {
+                    messages.forEach(message => {
+                        const row = document.createElement('tr');
+                        const receivedDate = new Date(message.submitted_at).toLocaleString('en-GB'); // Format date/time
+
+                        // Use template literal for row HTML
+                        row.innerHTML = `
+                            <td>${escapeHtml(message.name)}</td>
+                            <td><a href="mailto:${escapeHtml(message.email)}" class="text-admin-secondary hover:underline">${escapeHtml(message.email)}</a></td>
+                            <td><span class="message-preview" title="Click to view full message" onclick="openModal('${message.id}')">${escapeHtml(message.message)}</span></td>
+                            <td>${escapeHtml(message.service_inquiry || 'N/A')}</td>
+                            <td>${receivedDate}</td>
+                            <td>
+                                <label class="inline-flex items-center status-toggle">
+                                    <input 
+                                        type="checkbox" 
+                                        class="form-checkbox h-5 w-5 text-admin-secondary rounded border-gray-300 focus:ring-admin-secondary" 
+                                        ${message.replied ? 'checked' : ''} 
+                                        onchange="toggleRepliedStatus('${message.id}', this.checked, this)"
+                                        data-message-id="${message.id}" 
+                                    >
+                                    <span class="ml-2 text-sm text-gray-600">${message.replied ? 'Replied' : 'Pending'}</span>
+                                </label>
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                    if(exportMessagesCsvButton) exportMessagesCsvButton.disabled = false; 
+                } else {
+                    if(noMessagesMessage) noMessagesMessage.classList.remove('hidden');
+                }
+
+            } catch (error) {
+                console.error("Error loading contact messages:", error);
+                if(errorLoadingMessage) {
+                   errorLoadingMessage.textContent = "Error loading data: " + error.message;
+                   errorLoadingMessage.classList.remove('hidden');
+                }
+            } finally {
+                if(tableLoadingIndicator) tableLoadingIndicator.classList.add('hidden');
+            }
+        } // End of loadMessages
+
+        async function toggleRepliedStatus(messageId, hasReplied, checkboxElement, fromModal = false) {
+            if (!supabaseClient) { 
+                 alert("Backend connection error. Cannot update status.");
+                 if(checkboxElement) checkboxElement.checked = !hasReplied; 
+                 return;
+            }
+
+            // Find the corresponding checkbox in the table if update comes from modal
+            let tableCheckbox = checkboxElement;
+            if (fromModal) {
+                tableCheckbox = document.querySelector('input[data-message-id="' + messageId + '"]');
+            }
+            
+            const checkboxToDisable = fromModal ? document.getElementById('modalRepliedStatus') : tableCheckbox;
+            const labelSpan = tableCheckbox ? tableCheckbox.nextElementSibling : null; 
+            const originalLabel = labelSpan ? labelSpan.textContent : '';
+            
+            if(checkboxToDisable) checkboxToDisable.disabled = true; 
+            if(labelSpan) labelSpan.textContent = 'Updating...';
+
+            console.log(`Updating message ID: ${messageId} to replied: ${hasReplied}`);
+
+            try {
+                const { error } = await supabaseClient 
+                    .from('contact_messages')
+                    .update({ replied: hasReplied })
+                    .match({ id: messageId });
+
+                if (error) {
+                    console.error("Supabase update error:", error);
+                    throw error;
+                }
+                console.log("Update successful for ID:", messageId);
+                if(labelSpan) labelSpan.textContent = hasReplied ? 'Replied' : 'Pending';
+                
+                // If updated from modal, also update the table checkbox visually
+                if (fromModal && tableCheckbox) {
+                    tableCheckbox.checked = hasReplied;
+                }
+                // Update the data in our local array as well
+                 const messageIndex = allMessagesData.findIndex(m => m.id === messageId);
+                 if (messageIndex > -1) {
+                    allMessagesData[messageIndex].replied = hasReplied;
+                 }
+
+            } catch (error) {
+                console.error("Error updating replied status:", error);
+                if(checkboxToDisable) checkboxToDisable.checked = !hasReplied; // Revert UI
+                if (tableCheckbox && fromModal) tableCheckbox.checked = !hasReplied; // Revert table checkbox too
+                if(labelSpan) labelSpan.textContent = originalLabel;
+                alert("Failed to update status: " + error.message); 
+            } finally {
+                 if(checkboxToDisable) checkboxToDisable.disabled = false;
+                 // If updated from modal, ensure the table label is also correct
+                 if (fromModal && labelSpan) {
+                     labelSpan.textContent = checkboxToDisable.checked ? 'Replied' : 'Pending';
+                 }
+            }
+        } // End of toggleRepliedStatus
+
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', checkAuthStateAndLoadUser);
+
+    </script> 
+    
+</body> 
+</html>

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LexoGraphix Plus - Empowering Young Gambian Writers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        /* Custom styles to integrate brand colors */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .bg-primary { background-color: #002147; } /* Navy Blue */
+        .text-primary { color: #002147; }
+        .border-primary { border-color: #002147; }
+
+        .bg-secondary { background-color: #C69E63; } /* Gold */
+        .text-secondary { color: #C69E63; }
+        .border-secondary { border-color: #C69E63; }
+
+        .btn-primary {
+            background-color: #C69E63; /* Gold */
+            color: #002147; /* Navy Blue */
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #002147; /* Navy Blue */
+            color: #C69E63; /* Gold */
+        }
+
+        .btn-secondary {
+            background-color: #002147; /* Navy Blue */
+            color: #FFFFFF; /* White */
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .btn-secondary:hover {
+            background-color: #103A67; /* Darker Navy */
+            color: #FFFFFF;
+        }
+        /* Helper for active nav link */
+        .nav-link-active {
+            color: #C69E63; /* Gold */
+            font-weight: 600;
+        }
+        /* Basic responsive hamburger menu styling */
+        #mobile-menu {
+            display: none; /* Hidden by default */
+        }
+        @media (max-width: 768px) { /* md breakpoint in Tailwind */
+            #desktop-menu {
+                display: none;
+            }
+            #mobile-menu.show {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex-shrink-0">
+                    <a href="index.html" class="text-2xl font-bold text-primary">
+                        LexoGraphix<span class="text-secondary">Plus</span>
+                    </a>
+                </div>
+
+                <nav id="desktop-menu" class="hidden md:flex space-x-6 lg:space-x-8 items-center">
+                    <a href="index.html" class="text-gray-700 hover:text-secondary transition duration-150 ease-in-out nav-link-active">Home</a>
+                    <a href="about.html" class="text-gray-700 hover:text-secondary transition duration-150 ease-in-out">About</a>
+                    <a href="services.html" class="text-gray-700 hover:text-secondary transition duration-150 ease-in-out">Services</a>
+                    <a href="platforms.html" class="text-gray-700 hover:text-secondary transition duration-150 ease-in-out">Platforms</a>
+                    <a href="blog.html" class="text-gray-700 hover:text-secondary transition duration-150 ease-in-out">Blog</a>
+                    <a href="contact.html" class="text-gray-700 hover:text-secondary transition duration-150 ease-in-out">Contact</a>
+                </nav>
+
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-button" class="text-primary hover:text-secondary focus:outline-none">
+                        <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="mobile-menu" class="md:hidden bg-white shadow-lg border-t border-gray-200">
+            <a href="index.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary nav-link-active">Home</a>
+            <a href="about.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">About</a>
+            <a href="services.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Services</a>
+            <a href="platforms.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Platforms</a>
+            <a href="blog.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Blog</a>
+            <a href="contact.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Contact</a>
+        </div>
+    </header>
+
+    <main>
+        <section class="bg-primary text-white py-20 md:py-32">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 leading-tight">
+                    Empowering Young <span class="text-secondary">Gambian</span> Writers
+                </h1>
+                <p class="text-lg sm:text-xl md:text-2xl mb-10 max-w-3xl mx-auto text-gray-200">
+                    Professional publishing, book promotion, and self-publishing guidance to bring your stories to life.
+                </p>
+                <a href="services.html" class="btn-primary text-lg font-semibold py-4 px-10 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition duration-300">
+                    Start Your Publishing Journey
+                </a>
+            </div>
+        </section>
+
+        <section id="platforms" class="py-16 md:py-24 bg-white">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl sm:text-4xl font-bold text-primary text-center mb-6">Our Platforms</h2>
+                <p class="text-center text-gray-600 mb-12 md:mb-16 max-w-2xl mx-auto">
+                    Discover resources, connect with authors, and find your next read. We're building a vibrant literary community.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+                    <div class="bg-gray-50 p-8 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 flex flex-col items-center text-center">
+                        <div class="text-secondary text-5xl mb-6">
+                            <i class="fas fa-book-open"></i> </div>
+                        <h3 class="text-2xl font-semibold text-primary mb-3">Knowledge Base</h3>
+                        <p class="text-gray-600 mb-6 leading-relaxed flex-grow">
+                            A dynamic educational hub offering self-publishing guidance, tips, and best practices for aspiring and established authors.
+                        </p>
+                        <a href="https://lexocademy.lexographixplus.org" class="btn-secondary font-medium py-3 px-6 rounded-lg mt-auto"  target="_blank" 
+                        rel="noopener noreferrer">Learn More</a>
+                    </div>
+
+                    <div class="bg-gray-50 p-8 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 flex flex-col items-center text-center">
+                        <div class="text-secondary text-5xl mb-6">
+                            <i class="fas fa-users"></i> </div>
+                        <h3 class="text-2xl font-semibold text-primary mb-3">Author Directory</h3>
+                        <p class="text-gray-600 mb-6 leading-relaxed flex-grow">
+                            A digital showcase of writers affiliated with or supported by LexoGraphix Plus, offering visibility and networking opportunities.
+                        </p>
+                        <a href="https://authors.lexographixplus.org" class="btn-secondary font-medium py-3 px-6 rounded-lg mt-auto"  target="_blank" 
+                        rel="noopener noreferrer">Explore Directory</a>
+                    </div>
+
+                    <div class="bg-gray-50 p-8 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 flex flex-col items-center text-center">
+                        <div class="text-secondary text-5xl mb-6">
+                            <i class="fas fa-store"></i> </div>
+                        <h3 class="text-2xl font-semibold text-primary mb-3">Book Store</h3>
+                        <p class="text-gray-600 mb-6 leading-relaxed flex-grow">
+                            An online storefront to explore, preview, and access books published or promoted by LexoGraphix Plus.
+                        </p>
+                        <a href="book-store.html" class="btn-secondary font-medium py-3 px-6 rounded-lg mt-auto">Shop Books</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-secondary text-primary py-16 md:py-24">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 class="text-3xl sm:text-4xl font-bold mb-6">
+                    Are you a young Gambian writer with a story to share?
+                </h2>
+                <p class="text-lg sm:text-xl md:text-2xl mb-10 max-w-3xl mx-auto text-gray-800">
+                    Join LexoGraphix Plus and take your first step toward becoming a published author!
+                </p>
+                <a href="contact.html" class="bg-primary text-white text-lg font-semibold py-4 px-10 rounded-lg shadow-lg hover:bg-opacity-90 transform hover:scale-105 transition duration-300">
+                    Get in Touch
+                </a>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-primary text-gray-200 py-12 md:py-16">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                <div>
+                    <h3 class="text-xl font-semibold text-secondary mb-4">LexoGraphix<span class="text-white">Plus</span></h3>
+                    <p class="text-gray-300 leading-relaxed">
+                        Nurturing Young Gambian Voices, Shaping Our Literary Future. We are dedicated to empowering the next generation of writers in The Gambia.
+                    </p>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-semibold text-secondary mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="about.html" class="hover:text-secondary transition duration-150">About Us</a></li>
+                        <li><a href="services.html" class="hover:text-secondary transition duration-150">Our Services</a></li>
+                        <li><a href="blog.html" class="hover:text-secondary transition duration-150">Blog</a></li>
+                        <li><a href="contact.html" class="hover:text-secondary transition duration-150">Contact Us</a></li>
+                        <li><a href="faq.html" class="hover:text-secondary transition duration-150">FAQ</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-semibold text-secondary mb-4">Contact Us</h3>
+                    <address class="not-italic text-gray-300 space-y-2">
+                        <p><i class="fas fa-envelope mr-2 text-secondary"></i> <a href="mailto:info@lexographixplus.com" class="hover:text-secondary">info@lexographixplus.com</a></p>
+                        <p><i class="fas fa-globe mr-2 text-secondary"></i> <a href="https://lexographixplus.com" target="_blank" class="hover:text-secondary">lexographixplus.com</a></p>
+                         <p class="text-sm mt-1">Location: Banjul, The Gambia</p>
+                    </address>
+                    <div class="mt-6 flex space-x-4">
+                        <a href="https://facebook.com/lexographixplus" target="_blank" aria-label="Facebook" class="text-gray-300 hover:text-secondary text-2xl"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://twitter.com" target="_blank" aria-label="Twitter / X" class="text-gray-300 hover:text-secondary text-2xl"><i class="fab fa-twitter"></i></a>
+                        <a href="https://linkedin.com/lexographixplus" target="_blank" aria-label="LinkedIn" class="text-gray-300 hover:text-secondary text-2xl"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 pt-8 text-center text-sm text-gray-400">
+                <p>&copy; <span id="currentYear"></span> LexoGraphix Plus. All Rights Reserved. Designed with <i class="fas fa-heart text-secondary"></i> for Gambian Writers.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // JavaScript for Mobile Menu Toggle
+        const menuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        menuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('show');
+            // Optional: change button icon
+            if (mobileMenu.classList.contains('show')) {
+                menuButton.innerHTML = `
+                    <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>`;
+            } else {
+                menuButton.innerHTML = `
+                    <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                    </svg>`;
+            }
+        });
+
+        // Close mobile menu when a link is clicked (optional)
+        const mobileNavLinks = mobileMenu.querySelectorAll('a');
+        mobileNavLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (mobileMenu.classList.contains('show')) {
+                    mobileMenu.classList.remove('show');
+                     menuButton.innerHTML = `
+                        <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>`;
+                }
+            });
+        });
+
+
+        // Smooth scroll for anchor links (optional)
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                // Check if the link is just a placeholder or for actual page navigation
+                if (this.getAttribute('href') === '#' || this.getAttribute('href').startsWith('#') && this.getAttribute('href').length > 1 && !document.getElementById(this.getAttribute('href').substring(1))) {
+                    // If it's a placeholder like "#" or an anchor to a non-existent element, do nothing or allow default behavior for external pages.
+                    // For this project, most # links are placeholders for future pages.
+                    // If you want to prevent default for "#" only:
+                    if (this.getAttribute('href') === '#') e.preventDefault();
+                    return;
+                }
+
+                // If it's an actual on-page anchor
+                if (document.getElementById(this.getAttribute('href').substring(1))) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Set current year in footer
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+    </script>
+
+</body>
+</html>

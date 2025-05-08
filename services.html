@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Services - LexoGraphix Plus</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        /* Custom styles to integrate brand colors and base styles - consistent with other pages */
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .bg-primary { background-color: #002147; } /* Navy Blue */
+        .text-primary { color: #002147; }
+        .border-primary { border-color: #002147; }
+
+        .bg-secondary { background-color: #C69E63; } /* Gold */
+        .text-secondary { color: #C69E63; }
+        .border-secondary { border-color: #C69E63; }
+
+        .btn-primary {
+            background-color: #C69E63; /* Gold */
+            color: #002147; /* Navy Blue */
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+            display: inline-block;
+        }
+        .btn-primary:hover {
+            background-color: #002147; /* Navy Blue */
+            color: #C69E63; /* Gold */
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: #002147; /* Navy Blue */
+            color: #FFFFFF; /* White */
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+            display: inline-block;
+        }
+        .btn-secondary:hover {
+            background-color: #103A67; /* Darker Navy */
+            color: #FFFFFF;
+            transform: translateY(-2px);
+        }
+
+        /* Active nav link styling */
+        .nav-link-active {
+            color: #C69E63 !important;
+            font-weight: 700;
+        }
+        .nav-link-inactive {
+            color: #374151; /* text-gray-700 */
+        }
+        .nav-link-inactive:hover {
+            color: #C69E63;
+        }
+
+        /* Mobile Menu Styling */
+        #mobile-menu {
+            display: none;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+        }
+        #mobile-menu.show {
+            display: block;
+            max-height: 500px; /* Adjust as needed */
+        }
+
+        /* Page Transition Animation */
+        .page-enter { opacity: 0; transform: translateY(20px); }
+        .page-enter-active { opacity: 1; transform: translateY(0); transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
+
+        /* Section title styling */
+        .section-title {
+            font-size: 2.25rem; /* text-4xl */
+            font-weight: 700; /* bold */
+            color: #002147; /* text-primary */
+            margin-bottom: 1.5rem; /* mb-6 */
+            text-align: center;
+        }
+        .section-subtitle {
+            font-size: 1.125rem; /* text-lg */
+            color: #4B5563; /* text-gray-600 */
+            text-align: center;
+            max-width: 48rem; /* max-w-2xl */
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 3rem; /* mb-12 */
+        }
+
+        /* Service Card Styling */
+        .service-card {
+            background-color: #ffffff;
+            border-radius: 0.75rem; /* rounded-xl */
+            padding: 2rem; /* p-8 */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.04); /* Softer shadow */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-left: 4px solid #C69E63; /* Secondary color accent border */
+        }
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.05);
+        }
+        .service-card-icon {
+            font-size: 2.5rem; /* text-4xl */
+            margin-bottom: 1rem; /* mb-4 */
+            color: #002147; /* Primary color for icon */
+            background-color: #E0E7FF; /* Light blueish background for icon */
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .service-card-title {
+            font-size: 1.5rem; /* text-2xl */
+            font-weight: 600; /* semibold */
+            color: #002147; /* text-primary */
+            margin-bottom: 0.75rem; /* mb-3 */
+        }
+        .service-card-description {
+            color: #4B5563; /* text-gray-600 */
+            line-height: 1.625; /* leading-relaxed */
+            margin-bottom: 1rem; /* mb-4 */
+        }
+        .service-card ul {
+            list-style-type: none; /* Remove default bullets */
+            padding-left: 0;
+        }
+        .service-card ul li {
+            padding-left: 1.75rem; /* Space for custom icon */
+            position: relative;
+            margin-bottom: 0.5rem; /* space between list items */
+            color: #374151; /* text-gray-700 */
+        }
+        .service-card ul li::before {
+            content: "\f00c"; /* Font Awesome check icon */
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            color: #C69E63; /* text-secondary */
+            position: absolute;
+            left: 0;
+            top: 1px; /* Adjust for vertical alignment */
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex-shrink-0">
+                    <a href="index.html" class="text-2xl font-bold text-primary hover:opacity-80 transition-opacity">
+                        LexoGraphix<span class="text-secondary">Plus</span>
+                    </a>
+                </div>
+
+                <nav id="desktop-menu" class="hidden md:flex space-x-6 lg:space-x-8 items-center">
+                    <a href="index.html" class="nav-link-inactive transition duration-150 ease-in-out">Home</a>
+                    <a href="about.html" class="nav-link-inactive transition duration-150 ease-in-out">About</a>
+                    <a href="services.html" class="nav-link-active transition duration-150 ease-in-out">Services</a>
+                    <a href="platforms.html" class="nav-link-inactive transition duration-150 ease-in-out">Platforms</a>
+                    <a href="blog.html" class="nav-link-inactive transition duration-150 ease-in-out">Blog</a>
+                    <a href="contact.html" class="nav-link-inactive transition duration-150 ease-in-out">Contact</a>
+                </nav>
+
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-button" aria-label="Open Menu" class="text-primary hover:text-secondary focus:outline-none">
+                        <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" id="menu-icon-open">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                        <svg class="h-7 w-7 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" id="menu-icon-close">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="mobile-menu" class="md:hidden bg-white shadow-lg border-t border-gray-200">
+            <a href="index.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Home</a>
+            <a href="about.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">About</a>
+            <a href="services.html" class="block px-4 py-3 text-secondary bg-gray-100 font-semibold">Services</a>
+            <a href="platforms.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Platforms</a>
+            <a href="blog.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Blog</a>
+            <a href="contact.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Contact</a>
+            <a href="admin/login.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Admin</a>
+        </div>
+    </header>
+
+    <main>
+        <section class="bg-primary text-white py-16 md:py-24">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h1 class="text-4xl sm:text-5xl font-bold">Our Services</h1>
+                <p class="text-lg sm:text-xl mt-4 text-gray-300 max-w-3xl mx-auto">
+                    Tailored solutions for young Gambian writers to publish, promote, and succeed. We're here to support your literary journey every step of the way.
+                </p>
+            </div>
+        </section>
+
+        <section class="py-16 md:py-24 bg-gray-50">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <p class="section-subtitle !mb-12">
+                    LexoGraphix Plus offers a suite of services specifically designed to help young Gambian writers bring their literary creations to life and connect with readers.
+                </p>
+
+                <div class="space-y-12 md:space-y-16">
+                    <div id="partnership-publishing" class="service-card page-enter">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center mb-6">
+                            <div class="service-card-icon mr-0 sm:mr-6 mb-4 sm:mb-0 flex-shrink-0">
+                                <i class="fas fa-handshake"></i>
+                            </div>
+                            <div>
+                                <h2 class="service-card-title">Partnership Publishing for Young Writers</h2>
+                                <p class="text-sm text-gray-500 -mt-2 mb-2">(Royalty-Based Model)</p>
+                            </div>
+                        </div>
+                        <p class="service-card-description">
+                            For young authors seeking a collaborative and supportive publishing experience with a focus on professional presentation and reaching their target audience within The Gambia and beyond.
+                        </p>
+                        <h3 class="text-lg font-semibold text-primary mb-3">LexoGraphix Plus Provides:</h3>
+                        <ul class="space-y-2 mb-6">
+                            <li>Support and Guidance: Tailored throughout the publishing process, addressing unique challenges young Gambian writers face.</li>
+                            <li>Professional Cover Design: Eye-catching and culturally relevant book covers (if not already provided by the author).</li>
+                            <li>Interior Layout and Formatting: Professional formatting for both print and digital platforms.</li>
+                            <li>Printing Coordination: Collaborating with trusted local printers for quality and affordability.</li>
+                            <li>Targeted Book Promotion: Online listings, social media campaigns, promotional materials, and outreach to relevant organizations.</li>
+                            <li>Local Distribution Assistance: Support in getting books into bookstores and community networks.</li>
+                        </ul>
+                        <h3 class="text-lg font-semibold text-primary mb-3">Young Author Responsibilities:</h3>
+                        <ul class="space-y-2">
+                             <li>Commitment to Editing: Ensuring manuscripts are thoroughly edited.</li>
+                             <li>Active Promotion Participation: Engaging in marketing efforts and leveraging personal networks.</li>
+                        </ul>
+                         <a href="contact.html?service=partnership-publishing" class="btn-secondary font-medium py-3 px-6 rounded-lg mt-8">Inquire About Partnership</a>
+                    </div>
+
+                    <div id="book-promotion" class="service-card page-enter">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center mb-6">
+                            <div class="service-card-icon mr-0 sm:mr-6 mb-4 sm:mb-0 flex-shrink-0">
+                                <i class="fas fa-bullhorn"></i>
+                            </div>
+                            <div>
+                                <h2 class="service-card-title">Book Promotion Services for Authors</h2>
+                                <p class="text-sm text-gray-500 -mt-2 mb-2">(For Already Published Books)</p>
+                            </div>
+                        </div>
+                        <p class="service-card-description">
+                            For young authors who have already published their books and need assistance in increasing visibility and reaching a wider readership in The Gambia.
+                        </p>
+                        <h3 class="text-lg font-semibold text-primary mb-3">Services Offered (Tailored to Author Needs):</h3>
+                        <ul class="space-y-2">
+                            <li>Social Media Marketing Campaigns: Targeted campaigns on platforms popular with young Gambians.</li>
+                            <li>Online Engagement Strategies: Training on how to interact with readers online and build a following.</li>
+                            <li>Outreach to Schools and Youth Groups: Facilitating connections for book talks and signings.</li>
+                            <li>Local Literary Event Participation: Assistance in attending relevant literary events and workshops.</li>
+                        </ul>
+                        <a href="contact.html?service=book-promotion" class="btn-secondary font-medium py-3 px-6 rounded-lg mt-8">Boost Your Book's Reach</a>
+                    </div>
+
+                    <div id="self-publishing-consultancy" class="service-card page-enter">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center mb-6">
+                            <div class="service-card-icon mr-0 sm:mr-6 mb-4 sm:mb-0 flex-shrink-0">
+                                <i class="fas fa-user-graduate"></i>
+                            </div>
+                            <div>
+                                <h2 class="service-card-title">Self-Publishing Consultancy for Young Writers</h2>
+                            </div>
+                        </div>
+                        <p class="service-card-description">
+                            For authors who want to self-publish but need guidance tailored to their experience and local resources in The Gambia.
+                        </p>
+                        <h3 class="text-lg font-semibold text-primary mb-3">Services Offered (À la Carte or Package):</h3>
+                        <ul class="space-y-2">
+                            <li>Simplified Publishing Roadmap: Step-by-step guidance for self-publishing in The Gambia.</li>
+                            <li>Affordable Editing & Proofreading Resources: Advice on finding local editing support.</li>
+                            <li>Culturally Relevant Cover Design & Layout Consultation: Ensuring books appeal to Gambian audiences.</li>
+                            <li>ISBN and Basic Publishing Requirements: Guidance on obtaining ISBNs and meeting standards.</li>
+                            <li>Online & Local Distribution Advice: Helping authors understand where and how to sell their books.</li>
+                            <li>Marketing & Promotion Strategies: Teaching authors how to promote themselves and their work.</li>
+                        </ul>
+                        <a href="contact.html?service=self-publishing-consultancy" class="btn-secondary font-medium py-3 px-6 rounded-lg mt-8">Get Self-Publishing Guidance</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-secondary text-primary py-16 md:py-20">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 class="text-3xl sm:text-4xl font-bold mb-6">
+                    Are you a young Gambian writer with a story to share?
+                </h2>
+                <p class="text-lg sm:text-xl md:text-2xl mb-10 max-w-3xl mx-auto text-gray-800">
+                    Join LexoGraphix Plus and take your first step toward becoming a published author! We provide the tools, support, and expertise you need.
+                </p>
+                <a href="contact.html" class="bg-primary text-white text-lg font-semibold py-4 px-10 rounded-lg shadow-lg hover:bg-opacity-90 transform hover:scale-105 transition duration-300">
+                    Start Your Publishing Journey
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-primary text-gray-200 py-12 md:py-16">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+                <div class="lg:col-span-1">
+                    <h3 class="text-xl font-semibold text-secondary mb-4">LexoGraphix<span class="text-white">Plus</span></h3>
+                    <p class="text-gray-300 leading-relaxed text-sm">
+                        Nurturing Young Gambian Voices, Shaping Our Literary Future.
+                    </p>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold text-secondary mb-4">Quick Links</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="index.html" class="hover:text-secondary transition duration-150">Home</a></li>
+                        <li><a href="about.html" class="hover:text-secondary transition duration-150">About Us</a></li>
+                        <li><a href="services.html" class="hover:text-secondary transition duration-150">Services</a></li>
+                        <li><a href="platforms.html" class="hover:text-secondary transition duration-150">Platforms</a></li>
+                        <li><a href="blog.html" class="hover:text-secondary transition duration-150">Blog</a></li>
+                        <li><a href="contact.html" class="hover:text-secondary transition duration-150">Contact</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold text-secondary mb-4">Resources</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#faq" class="hover:text-secondary transition duration-150">FAQ</a></li> <li><a href="#privacy" class="hover:text-secondary transition duration-150">Privacy Policy</a></li> <li><a href="#terms" class="hover:text-secondary transition duration-150">Terms of Service</a></li> 
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold text-secondary mb-4">Get In Touch</h3>
+                    <address class="not-italic text-gray-300 space-y-2 text-sm">
+                        <p><i class="fas fa-map-marker-alt fa-fw mr-2 text-secondary"></i> Serrekunda, The Gambia</p>
+                        <p><i class="fas fa-phone-alt fa-fw mr-2 text-secondary"></i> (220) 2016679 / 5322922</p>
+                        <p><i class="fas fa-envelope fa-fw mr-2 text-secondary"></i> <a href="mailto:info@lexographixplus.com" class="hover:text-secondary">info@lexographixplus.com</a></p>
+                    </address>
+                    <div class="mt-6 flex space-x-4">
+                        <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" class="text-gray-300 hover:text-secondary text-xl"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter / X" class="text-gray-300 hover:text-secondary text-xl"><i class="fab fa-twitter"></i></a>
+                        <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" class="text-gray-300 hover:text-secondary text-xl"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="text-gray-300 hover:text-secondary text-xl"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 pt-8 text-center text-xs text-gray-400">
+                <p>© <span id="currentYear"></span> LexoGraphix Plus. All Rights Reserved. Empowering Gambian Writers.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // JavaScript for Mobile Menu Toggle
+        const menuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuIconOpen = document.getElementById('menu-icon-open');
+        const menuIconClose = document.getElementById('menu-icon-close');
+
+        menuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('show');
+            menuIconOpen.classList.toggle('hidden');
+            menuIconClose.classList.toggle('hidden');
+        });
+
+        // Close mobile menu when a link is clicked
+        const mobileNavLinks = mobileMenu.querySelectorAll('a');
+        mobileNavLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (mobileMenu.classList.contains('show')) {
+                    mobileMenu.classList.remove('show');
+                    menuIconOpen.classList.remove('hidden');
+                    menuIconClose.classList.add('hidden');
+                }
+            });
+        });
+
+        // Set current year in footer
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // Scroll-reveal animation for sections
+        const sectionsToAnimate = document.querySelectorAll('.page-enter');
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('page-enter-active');
+                    // observer.unobserve(entry.target); // Optional: remove to re-animate if scrolled out and back
+                } else {
+                    // Optional: remove 'page-enter-active' if you want animation to replay when scrolling up
+                    // entry.target.classList.remove('page-enter-active');
+                }
+            });
+        }, observerOptions);
+
+        sectionsToAnimate.forEach(section => {
+            observer.observe(section);
+        });
+
+        // Smooth scroll for anchor links within this page (if any were added)
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                // Check if it's an on-page anchor and the target element exists
+                if (href.length > 1 && href.startsWith('#') && document.getElementById(href.substring(1))) {
+                    e.preventDefault();
+                    const targetElement = document.getElementById(href.substring(1));
+                    if (targetElement) {
+                        targetElement.scrollIntoView({
+                            behavior: 'smooth'
+                        });
+                    }
+                }
+                // For external links or links to other pages, let the browser handle it.
+                // The contact buttons now link to contact.html with query params, so they won't trigger smooth scroll.
+            });
+        });
+
+    </script>
+
+</body>
+</html>

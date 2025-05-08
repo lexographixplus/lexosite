@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Platforms - LexoGraphix Plus</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        /* Custom styles - consistent with other pages */
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .bg-primary { background-color: #002147; } /* Navy Blue */
+        .text-primary { color: #002147; }
+        .border-primary { border-color: #002147; }
+
+        .bg-secondary { background-color: #C69E63; } /* Gold */
+        .text-secondary { color: #C69E63; }
+        .border-secondary { border-color: #C69E63; }
+
+        .btn-primary {
+            background-color: #C69E63; /* Gold */
+            color: #002147; /* Navy Blue */
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+            display: inline-block;
+        }
+        .btn-primary:hover {
+            background-color: #002147; /* Navy Blue */
+            color: #C69E63; /* Gold */
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: #002147; /* Navy Blue */
+            color: #FFFFFF; /* White */
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+            display: inline-block;
+        }
+        .btn-secondary:hover {
+            background-color: #103A67; /* Darker Navy */
+            color: #FFFFFF;
+            transform: translateY(-2px);
+        }
+
+        /* Active nav link styling */
+        .nav-link-active {
+            color: #C69E63 !important;
+            font-weight: 700;
+        }
+        .nav-link-inactive {
+            color: #374151; /* text-gray-700 */
+        }
+        .nav-link-inactive:hover {
+            color: #C69E63;
+        }
+
+        /* Mobile Menu Styling */
+        #mobile-menu {
+            display: none;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+        }
+        #mobile-menu.show {
+            display: block;
+            max-height: 500px; /* Adjust as needed */
+        }
+
+        /* Page Transition Animation */
+        .page-enter { opacity: 0; transform: translateY(20px); }
+        .page-enter-active { opacity: 1; transform: translateY(0); transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
+
+        /* Section title styling */
+        .section-title {
+            font-size: 2.25rem; /* text-4xl */
+            font-weight: 700; /* bold */
+            color: #002147; /* text-primary */
+            margin-bottom: 1.5rem; /* mb-6 */
+            text-align: center;
+        }
+        .section-subtitle {
+            font-size: 1.125rem; /* text-lg */
+            color: #4B5563; /* text-gray-600 */
+            text-align: center;
+            max-width: 48rem; /* max-w-2xl */
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 3rem; /* mb-12 */
+        }
+
+        /* Platform Card Styling */
+        .platform-card {
+            background-color: #ffffff;
+            border-radius: 0.75rem; /* rounded-xl */
+            padding: 2.5rem; /* p-10 for more space */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column; /* Ensure button aligns at bottom */
+            height: 100%; /* For consistent card heights in a row */
+        }
+        .platform-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.05);
+        }
+        .platform-card-icon-wrapper {
+            width: 80px; /* Larger icon wrapper */
+            height: 80px;
+            border-radius: 50%;
+            background-color: #002147; /* bg-primary */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem; /* mb-6 */
+            align-self: center; /* Center icon in the card */
+        }
+        .platform-card-icon {
+            font-size: 2.5rem; /* text-4xl */
+            color: #C69E63; /* text-secondary */
+        }
+        .platform-card-title {
+            font-size: 1.75rem; /* text-2xl or a bit larger */
+            font-weight: 600; /* semibold */
+            color: #002147; /* text-primary */
+            margin-bottom: 1rem; /* mb-4 */
+            text-align: center;
+        }
+        .platform-card-purpose {
+            font-style: italic;
+            color: #4B5563; /* text-gray-600 */
+            margin-bottom: 1rem; /* mb-4 */
+            text-align: center;
+        }
+        .platform-card-benefits-title {
+            font-size: 1.125rem; /* text-lg */
+            font-weight: 600; /* semibold */
+            color: #002147; /* text-primary */
+            margin-bottom: 0.75rem; /* mb-3 */
+            margin-top: 1rem; /* mt-4 */
+        }
+        .platform-card ul {
+            list-style-type: none;
+            padding-left: 0;
+            margin-bottom: 1.5rem; /* mb-6 */
+            flex-grow: 1; /* Allow list to take space pushing button down */
+        }
+        .platform-card ul li {
+            padding-left: 1.75rem;
+            position: relative;
+            margin-bottom: 0.5rem;
+            color: #374151; /* text-gray-700 */
+            font-size: 0.95rem; /* Slightly smaller text for benefits */
+        }
+        .platform-card ul li::before {
+            content: "\f058"; /* Font Awesome check-circle icon */
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900; /* Solid icon */
+            color: #C69E63; /* text-secondary */
+            position: absolute;
+            left: 0;
+            top: 2px;
+            font-size: 1rem;
+        }
+        .platform-card .btn-secondary { /* Specific styling for buttons in platform cards */
+            margin-top: auto; /* Pushes button to the bottom */
+            align-self: center; /* Center button */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex-shrink-0">
+                    <a href="index.html" class="text-2xl font-bold text-primary hover:opacity-80 transition-opacity">
+                        LexoGraphix<span class="text-secondary">Plus</span>
+                    </a>
+                </div>
+
+                <nav id="desktop-menu" class="hidden md:flex space-x-6 lg:space-x-8 items-center">
+                    <a href="index.html" class="nav-link-inactive transition duration-150 ease-in-out">Home</a>
+                    <a href="about.html" class="nav-link-inactive transition duration-150 ease-in-out">About</a>
+                    <a href="services.html" class="nav-link-inactive transition duration-150 ease-in-out">Services</a>
+                    <a href="platforms.html" class="nav-link-active transition duration-150 ease-in-out">Platforms</a>
+                    <a href="blog.html" class="nav-link-inactive transition duration-150 ease-in-out">Blog</a>
+                    <a href="contact.html" class="nav-link-inactive transition duration-150 ease-in-out">Contact</a>
+                </nav>
+
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-button" aria-label="Open Menu" class="text-primary hover:text-secondary focus:outline-none">
+                        <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" id="menu-icon-open">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                        <svg class="h-7 w-7 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" id="menu-icon-close">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="mobile-menu" class="md:hidden bg-white shadow-lg border-t border-gray-200">
+            <a href="index.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Home</a>
+            <a href="about.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">About</a>
+            <a href="services.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Services</a>
+            <a href="platforms.html" class="block px-4 py-3 text-secondary bg-gray-100 font-semibold">Platforms</a>
+            <a href="blog.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Blog</a>
+            <a href="contact.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Contact</a>
+            <a href="admin/login.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-secondary">Admin</a>
+        </div>
+    </header>
+
+    <main>
+        <section class="bg-primary text-white py-16 md:py-24">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h1 class="text-4xl sm:text-5xl font-bold">Our Platforms</h1>
+                <p class="text-lg sm:text-xl mt-4 text-gray-300 max-w-3xl mx-auto">
+                    Dedicated spaces to support, showcase, and connect Gambian writers and their work. Explore what we've built for our literary community.
+                </p>
+            </div>
+        </section>
+
+        <section class="py-16 md:py-24 bg-gray-50">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <p class="section-subtitle !mb-12">
+                    LexoGraphix Plus has created these platforms to empower authors, facilitate learning, and provide access to compelling Gambian literature.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+                    <div id="knowledge-base" class="platform-card page-enter">
+                        <div class="platform-card-icon-wrapper">
+                            <i class="fas fa-book-open platform-card-icon"></i>
+                        </div>
+                        <h2 class="platform-card-title">Knowledge Base</h2>
+                        <p class="platform-card-purpose">
+                            A dynamic educational hub offering self-publishing guidance, tips, and best practices for aspiring and established authors.
+                        </p>
+                        <h3 class="platform-card-benefits-title">Key Benefits:</h3>
+                        <ul class="space-y-2">
+                            <li>Empowers writers with step-by-step information on writing, formatting, publishing, and promotion.</li>
+                            <li>Accessible and regularly updated content tailored to Gambian and African self-publishing needs.</li>
+                            <li>Supports discovery through search, filters, and categorized topics.</li>
+                            <li>Builds authority for LexoGraphix Plus as a thought leader in digital publishing.</li>
+                        </ul>
+                        <a href="https://knowledgebase.lexographixplus.com" target="_blank" rel="noopener noreferrer" class="btn-secondary font-medium py-3 px-6 rounded-lg">
+                            Explore Knowledge Base <i class="fas fa-external-link-alt text-xs ml-2"></i>
+                        </a>
+                    </div>
+
+                    <div id="author-directory" class="platform-card page-enter">
+                        <div class="platform-card-icon-wrapper">
+                             <i class="fas fa-address-book platform-card-icon"></i>
+                        </div>
+                        <h2 class="platform-card-title">Author Directory</h2>
+                        <p class="platform-card-purpose">
+                            A digital showcase of writers affiliated with or supported by LexoGraphix Plus, offering visibility and networking opportunities.
+                        </p>
+                        <h3 class="platform-card-benefits-title">Key Benefits:</h3>
+                        <ul class="space-y-2">
+                            <li>Promotes emerging and established Gambian authors by highlighting their bios, genres, and works.</li>
+                            <li>Enables readers and collaborators to discover new talent and connect with writers.</li>
+                            <li>Encourages community-building and partnerships among authors.</li>
+                            <li>Provides a platform for authors to link their publications and grow their personal brands.</li>
+                        </ul>
+                        <a href="https://authordirectory.lexographixplus.com" target="_blank" rel="noopener noreferrer" class="btn-secondary font-medium py-3 px-6 rounded-lg">
+                            View Author Directory <i class="fas fa-external-link-alt text-xs ml-2"></i>
+                        </a>
+                    </div>
+
+                    <div id="book-store" class="platform-card page-enter">
+                        <div class="platform-card-icon-wrapper">
+                            <i class="fas fa-store-alt platform-card-icon"></i>
+                        </div>
+                        <h2 class="platform-card-title">Book Store</h2>
+                        <p class="platform-card-purpose">
+                            An online storefront to explore, preview, and access books published or promoted by LexoGraphix Plus.
+                        </p>
+                        <h3 class="platform-card-benefits-title">Key Benefits:</h3>
+                        <ul class="space-y-2">
+                            <li>Centralized access to all books published under or promoted by LexoGraphix Plus.</li>
+                            <li>Offers free and paid downloads, previews, and promotional banners to increase engagement and sales.</li>
+                            <li>Boosts visibility for authors and encourages local book readership.</li>
+                            <li>Supports sustainable monetization for self-published authors through various channels.</li>
+                        </ul>
+                        <a href="book-store.html" class="btn-secondary font-medium py-3 px-6 rounded-lg">Visit Book Store</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-secondary text-primary py-16 md:py-20">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 class="text-3xl sm:text-4xl font-bold mb-6">
+                    Ready to Leverage Our Platforms?
+                </h2>
+                <p class="text-lg sm:text-xl md:text-2xl mb-10 max-w-3xl mx-auto text-gray-800">
+                    Whether you're looking for guidance, visibility, or a place to sell your books, LexoGraphix Plus has a platform for you.
+                </p>
+                <a href="contact.html" class="bg-primary text-white text-lg font-semibold py-4 px-10 rounded-lg shadow-lg hover:bg-opacity-90 transform hover:scale-105 transition duration-300">
+                    Get Started Today
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-primary text-gray-200 py-12 md:py-16">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+                <div class="lg:col-span-1">
+                    <h3 class="text-xl font-semibold text-secondary mb-4">LexoGraphix<span class="text-white">Plus</span></h3>
+                    <p class="text-gray-300 leading-relaxed text-sm">
+                        Nurturing Young Gambian Voices, Shaping Our Literary Future.
+                    </p>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold text-secondary mb-4">Quick Links</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="index.html" class="hover:text-secondary transition duration-150">Home</a></li>
+                        <li><a href="about.html" class="hover:text-secondary transition duration-150">About Us</a></li>
+                        <li><a href="services.html" class="hover:text-secondary transition duration-150">Services</a></li>
+                        <li><a href="platforms.html" class="hover:text-secondary transition duration-150">Platforms</a></li>
+                        <li><a href="blog.html" class="hover:text-secondary transition duration-150">Blog</a></li>
+                        <li><a href="contact.html" class="hover:text-secondary transition duration-150">Contact</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold text-secondary mb-4">Resources</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="faq.html" class="hover:text-secondary transition duration-150">FAQ</a></li>
+                        <li><a href="privacy.html" class="hover:text-secondary transition duration-150">Privacy Policy</a></li>
+                        <li><a href="terms.html" class="hover:text-secondary transition duration-150">Terms of Service</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold text-secondary mb-4">Get In Touch</h3>
+                    <address class="not-italic text-gray-300 space-y-2 text-sm">
+                        <p><i class="fas fa-map-marker-alt fa-fw mr-2 text-secondary"></i> Serrekunda, The Gambia</p>
+                        <p><i class="fas fa-phone-alt fa-fw mr-2 text-secondary"></i> (220) 2016679 / 5322922</p>
+                        <p><i class="fas fa-envelope fa-fw mr-2 text-secondary"></i> <a href="mailto:info@lexographixplus.com" class="hover:text-secondary">info@lexographixplus.com</a></p>
+                    </address>
+                    <div class="mt-6 flex space-x-4">
+                        <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" class="text-gray-300 hover:text-secondary text-xl"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter / X" class="text-gray-300 hover:text-secondary text-xl"><i class="fab fa-twitter"></i></a>
+                        <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" class="text-gray-300 hover:text-secondary text-xl"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="text-gray-300 hover:text-secondary text-xl"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 pt-8 text-center text-xs text-gray-400">
+                <p>© <span id="currentYear"></span> LexoGraphix Plus. All Rights Reserved. Empowering Gambian Writers.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // JavaScript for Mobile Menu Toggle
+        const menuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuIconOpen = document.getElementById('menu-icon-open');
+        const menuIconClose = document.getElementById('menu-icon-close');
+
+        menuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('show');
+            menuIconOpen.classList.toggle('hidden');
+            menuIconClose.classList.toggle('hidden');
+        });
+
+        // Close mobile menu when a link is clicked
+        const mobileNavLinks = mobileMenu.querySelectorAll('a');
+        mobileNavLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (mobileMenu.classList.contains('show')) {
+                    mobileMenu.classList.remove('show');
+                    menuIconOpen.classList.remove('hidden');
+                    menuIconClose.classList.add('hidden');
+                }
+            });
+        });
+
+        // Set current year in footer
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // Scroll-reveal animation for sections
+        const sectionsToAnimate = document.querySelectorAll('.page-enter');
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('page-enter-active');
+                }
+            });
+        }, observerOptions);
+
+        sectionsToAnimate.forEach(section => {
+            observer.observe(section);
+        });
+    </script>
+
+</body>
+</html>
